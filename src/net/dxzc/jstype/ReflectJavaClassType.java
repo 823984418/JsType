@@ -168,6 +168,11 @@ public class ReflectJavaClassType implements Type {
     }
 
     @Override
+    public String getDoc() {
+        return javaClass.getTypeName() + ".class";
+    }
+
+    @Override
     public String toString() {
         return "class " + javaClass.getName();
     }

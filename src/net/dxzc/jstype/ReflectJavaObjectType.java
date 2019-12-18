@@ -130,6 +130,11 @@ public class ReflectJavaObjectType implements Type {
     }
 
     @Override
+    public String getDoc() {
+        return javaClass.getTypeName();
+    }
+
+    @Override
     public String toString() {
         return javaClass.getTypeName();
     }

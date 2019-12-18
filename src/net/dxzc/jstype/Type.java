@@ -107,6 +107,13 @@ public interface Type extends Iterable<String> {
     public Iterator<Type> getMemberType(String name);
 
     /**
+     * 获取文档信息.
+     *
+     * @return 文档信息
+     */
+    public String getDoc();
+
+    /**
      * 尝试以指定参数调用.
      *
      * @param length 参数个数

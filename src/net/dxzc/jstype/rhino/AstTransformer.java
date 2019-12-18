@@ -667,11 +667,38 @@ public class AstTransformer {
         JsType prototype = new JsType(name);
         prototype.extend(scope.getTopScope().getPrototype(JsTopScope.OBJECT));
         JsFunction fun = new JsFunction(name, s, prototype, args);
+        fun.extend(scope.getTopScope().getPrototype(JsTopScope.FUNCTION));
+        String doc = node.getJsDoc();
+        if (doc != null) {
+            fun.addDoc(initDoc(doc));
+        }
         transform(s, node.getBody());
         if (type == FunctionNode.FUNCTION_STATEMENT) {
             scope.getScope().getScopeType().putMember(name, fun);
         }
         return fun;
+    }
+
+    protected String initDoc(String s) {
+        StringBuilder sb = new StringBuilder();
+        boolean h = true;
+        for (int i = 2, l = s.length() - 1; i < l; i++) {
+            char c = s.charAt(i);
+            if (h) {
+                if (c == '*') {
+                    h = false;
+                    continue;
+                }
+                if (c == ' ') {
+                    continue;
+                }
+            }
+            sb.append(c);
+            if (c == '\n') {
+                h = true;
+            }
+        }
+        return sb.toString();
     }
 
 }

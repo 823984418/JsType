@@ -43,30 +43,92 @@ public class StandJsTopScope extends JsTopScope {
 
         JsType fun = new JsType("Function");
         map.put(FUNCTION, fun);
-        JsNativeFunction ff = new JsNativeFunction("Function", fun);
-        ff.extend(fun);
-        type.putMember(FUNCTION, ff);
+        JsNativeFunction funf = new JsNativeFunction("Function", fun);
+        funf.extend(fun);
+        type.putMember(FUNCTION, funf);
 
         JsType obj = new JsType("Object");
         map.put(OBJECT, obj);
-        JsObjectFunction of = new JsObjectFunction(obj);
-        of.extend(fun);
-        type.putMember(OBJECT, of);
+        JsObjectFunction objf = new JsObjectFunction(obj);
+        objf.extend(fun);
+        type.putMember(OBJECT, objf);
 
         fun.extend(obj);
 
         JsType arr = new JsType("Array");
         arr.extend(obj);
         map.put(ARRAY, arr);
-        JsArrayFunction af = new JsArrayFunction(arr);
-        af.extend(fun);
-        type.putMember(ARRAY, af);
+        JsArrayFunction arrf = new JsArrayFunction(arr);
+        arrf.extend(fun);
+        type.putMember(ARRAY, arrf);
 
-        buildClass(STRING, obj);
-        buildClass(NUMBER, obj);
-        buildClass(BOOLEAN, obj);
+        JsType str = buildClass(STRING, obj);
+        Type strf = getPrototype(STRING);
+        JsType num = buildClass(NUMBER, obj);
+        Type numf = getPrototype(NUMBER);
+        JsType boo = buildClass(BOOLEAN, obj);
+        Type boof = getPrototype(BOOLEAN);
 
-        buildClass(REGEXP, obj, "regex");
+        JsType reg = buildClass(REGEXP, obj, "regex");
+        Type regf = getPrototype(REGEXP);
+
+        JsType math = new JsType("Math");
+        map.put(MATH, math);
+        type.putMember(MATH, math);
+
+        method(fun, "apply", obj, "thisArg", "argArrayOpt");
+        method(fun, "call", obj, "thisArg", "...args");
+        method(fun, "toSource", str);
+        method(fun, "toString", str);
+        method(fun, "valueOf", str);
+
+        method(arr, "pop", obj);
+        method(arr, "push", num, "element");
+        method(arr, "reverse", null);
+        method(arr, "shift", obj);
+        method(arr, "sort", null, "compareFunction");
+        method(arr, "splice", null, "index", "howMany", "...element");
+        method(arr, "unshift", num, "...element");
+        method(arr, "concat", null, "...value");
+        method(arr, "indexOf", num, "searchElement");
+        method(arr, "join", str, "separatorOpt");
+        method(arr, "lastIndexOf", num, "searchElement");
+        arrayMethod(arr, "slice", "begin", "endOpt");
+        method(arr, "toString", str);
+        method(arr, "valueOf", str);
+        arrayMethod(arr, "filter", "callback");
+        method(arr, "forEach", null, "callback");
+        method(arr, "every", boo, "callback");
+        arrayMethod(arr, "map", "callback");
+        method(arr, "some", boo, "callback");
+
+        math.putMember("E", num);
+        math.putMember("LN2", num);
+        math.putMember("LN10", num);
+        math.putMember("LOG2E", num);
+        math.putMember("LOG10E", num);
+        math.putMember("PI", num);
+        math.putMember("SQRT1_2", num);
+        math.putMember("SQRT2", num);
+        method(math, "abs", num, "x");
+        method(math, "acos", num, "x");
+        method(math, "asin", num, "x");
+        method(math, "atan", num, "x");
+        method(math, "atan2", num, "x");
+        method(math, "ceil", num, "x");
+        method(math, "cos", num, "x");
+        method(math, "exp", num, "x");
+        method(math, "floor", num, "x");
+        method(math, "log", num, "x");
+        method(math, "max", num, "a", "b");
+        method(math, "min", num, "a", "b");
+        method(math, "pow", num, "base", "exponent");
+        method(math, "random", num);
+        method(math, "round", num, "x");
+        method(math, "sin", num, "x");
+        method(math, "sqrt", num, "x");
+        method(math, "tan", num, "x");
+
     }
 
     /**
@@ -99,6 +161,26 @@ public class StandJsTopScope extends JsTopScope {
         f.extend(getPrototype(FUNCTION));
         getScopeType().putMember(name, f);
         return pro;
+    }
+
+    public void arrayMethod(Type pro, String name, String... args) {
+        JsType p = new JsType();
+        p.extend(getPrototype(OBJECT));
+        Type arr = getPrototype(ARRAY);
+        JsArrayMethod m = new JsArrayMethod(name, p, arr, args);
+        m.extend(getPrototype(FUNCTION));
+        pro.putMember(name, m);
+    }
+
+    public void method(Type pro, String name, Type r, String... args) {
+        JsType p = new JsType();
+        p.extend(getPrototype(OBJECT));
+        JsNativeFunction m = new JsNativeFunction(name, p, args);
+        m.extend(getPrototype(FUNCTION));
+        if (r != null) {
+            m.putMember(Type.RETURN, r);
+        }
+        pro.putMember(name, m);
     }
 
 }

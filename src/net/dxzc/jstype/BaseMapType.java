@@ -93,7 +93,7 @@ public class BaseMapType implements Type {
         Set<String> r = new HashSet<>(members.keySet());
         for (Iterator<String> it = r.iterator(); it.hasNext();) {
             String s = it.next();
-            if(!canEnum(s)){
+            if (!canEnum(s)) {
                 it.remove();
             }
         }
@@ -107,6 +107,22 @@ public class BaseMapType implements Type {
             return null;
         }
         return ts.iterator();
+    }
+
+    /**
+     * 添加一个文档描述.
+     *
+     * @param s 描述
+     */
+    public void addDoc(String s) {
+        doc = s + doc;
+    }
+
+    private String doc = "";
+
+    @Override
+    public String getDoc() {
+        return doc;
     }
 
 }

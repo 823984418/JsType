@@ -160,6 +160,11 @@ public class ReflectJavaPackageType implements Type {
     }
 
     @Override
+    public String getDoc() {
+        return name;
+    }
+
+    @Override
     public String toString() {
         if (name.isEmpty()) {
             return "Packages";

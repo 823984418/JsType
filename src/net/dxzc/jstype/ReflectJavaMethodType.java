@@ -94,6 +94,11 @@ public class ReflectJavaMethodType implements Type {
         }
     }
 
+    @Override
+    public String getDoc() {
+        return method.toGenericString();
+    }
+
     private static class AItr implements Iterator<Action<Type>> {
 
         private AItr(int i) {

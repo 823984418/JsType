@@ -34,6 +34,8 @@ public abstract class JsTopScope extends JsScope {
     public static final String BOOLEAN = "Boolean";
 
     public static final String FUNCTION = "Function";
+    
+    public static final String MATH = "Math";
 
     public static final String REGEXP = "RegExp";
 

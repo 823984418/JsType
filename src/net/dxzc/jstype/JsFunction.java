@@ -59,7 +59,7 @@ public class JsFunction extends JsType {
             }
         }
         if (varArgs) {
-            //
+            argNames[argNames.length - 1] = argNames[argNames.length - 1].substring(3);
         }
         putMember(NEW, prototype);
     }
