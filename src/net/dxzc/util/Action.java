@@ -19,7 +19,7 @@ package net.dxzc.util;
 /**
  * 一个动作.
  *
- * @param <E>
+ * @param <E> 动作的对象
  * @author 823984418@qq.com
  */
 @FunctionalInterface

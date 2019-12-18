@@ -36,7 +36,7 @@ public class StandJsTopScope extends JsTopScope {
     /**
      * 以指定的类型构造环境.
      *
-     * @param type
+     * @param type 域类型
      */
     public StandJsTopScope(JsScopeType type) {
         super(type);

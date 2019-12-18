@@ -66,7 +66,7 @@ public class JsScope extends Rvalue {
     /**
      * 获取包含的类型.
      *
-     * @return
+     * @return 包含的类型
      */
     public JsScopeType getScopeType() {
         Iterator<Type> t = iterator();
@@ -95,7 +95,7 @@ public class JsScope extends Rvalue {
     /**
      * 获取其顶层域.
      *
-     * @return
+     * @return 顶层域
      */
     public JsTopScope getTopScope() {
         return topScope;
@@ -126,7 +126,7 @@ public class JsScope extends Rvalue {
     /**
      * 设置器类型的名字.
      *
-     * @param name
+     * @param name 名字
      */
     public void setTypeName(String name) {
         getScopeType().name = name;

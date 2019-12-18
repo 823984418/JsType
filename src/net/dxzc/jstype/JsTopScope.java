@@ -40,7 +40,7 @@ public abstract class JsTopScope extends JsScope {
     /**
      * 构造一个顶层域.
      *
-     * @param type
+     * @param type 域类型
      */
     public JsTopScope(JsScopeType type) {
         super(type, null, true);

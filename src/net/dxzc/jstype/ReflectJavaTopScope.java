@@ -45,7 +45,7 @@ public class ReflectJavaTopScope extends StandJsTopScope {
     /**
      * 以指定类加载器构建.
      *
-     * @param type
+     * @param type 域类型
      */
     public ReflectJavaTopScope(JsScopeType type) {
         super(type);

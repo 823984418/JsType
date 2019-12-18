@@ -34,7 +34,7 @@ public class ReflectJavaObjectType implements Type {
     /**
      * 封装一个类实例.
      *
-     * @param c
+     * @param c 类
      */
     public ReflectJavaObjectType(Class c) {
         javaClass = c;
