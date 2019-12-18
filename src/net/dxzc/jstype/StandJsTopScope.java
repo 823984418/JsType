@@ -163,6 +163,13 @@ public class StandJsTopScope extends JsTopScope {
         return pro;
     }
 
+    /**
+     * 构建一个返回数组类型的方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param args 形参表
+     */
     public void arrayMethod(Type pro, String name, String... args) {
         JsType p = new JsType();
         p.extend(getPrototype(OBJECT));
@@ -172,6 +179,14 @@ public class StandJsTopScope extends JsTopScope {
         pro.putMember(name, m);
     }
 
+    /**
+     * 构建一个方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param r 返回类型
+     * @param args 形参表
+     */
     public void method(Type pro, String name, Type r, String... args) {
         JsType p = new JsType();
         p.extend(getPrototype(OBJECT));

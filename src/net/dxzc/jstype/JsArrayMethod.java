@@ -28,7 +28,10 @@ public class JsArrayMethod extends JsNativeFunction {
     /**
      * 构造方法.
      *
+     * @param name 名字
      * @param prototype 对应原型
+     * @param arrayType 数组类型
+     * @param args 形参表
      */
     public JsArrayMethod(String name, JsType prototype, Type arrayType, String... args) {
         super(name, prototype, args);
