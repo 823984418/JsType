@@ -16,7 +16,7 @@
  */
 /**
  * 基于脚本引擎
- * Rhino https://developer.mozilla.org/zh-CN/docs/Mozilla/Projects/Rhino"
+ * Rhino https://developer.mozilla.org/zh-CN/docs/Mozilla/Projects/Rhino
  * 的翻译实现.
  */
 package net.dxzc.jstype.rhino;
