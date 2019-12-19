@@ -98,20 +98,35 @@ public class JsFunction extends JsType {
         return super.putMember(name, type);
     }
 
-    @Override
-    public Iterator<Action<Type>> invoke(int length) {
-        return new AItr(varArgs, args, length);
+    private void argInput(Rvalue... as) {
+        int l = args.length;
+        if (l < as.length) {
+            if (varArgs) {
+                Action<Type> more = args[l - 1];
+                for (int i = l, e = as.length; i < e; i++) {
+                    as[i].forType(more);
+                }
+            }
+            l = as.length;
+        }
+        for (int i = 0; i < l; i++) {
+            as[i].forType(args[i]);
+        }
     }
 
     @Override
-    public Iterator<Action<Type>> newInstance(int length) {
-        return new AItr(varArgs, args, length);
+    public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
+        argInput(args);
+        i.forType(t -> putMember(THIS, t));
+        addMemberAction(RETURN, r);
+        return true;
     }
 
     @Override
-    public void doNewInstance(Action<Type> action) {
-        super.doNewInstance(action);
-        putMember(THIS, prototype);
+    public boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
+        argInput(args);
+        addMemberAction(NEW, r);
+        return true;
     }
 
     @Override
@@ -138,44 +153,6 @@ public class JsFunction extends JsType {
     @Override
     public String toString() {
         return name + functionToString();
-    }
-
-    private static class AItr implements Iterator<Action<Type>> {
-
-        private AItr(boolean var, Action<Type>[] es, int length) {
-            this.es = es;
-            l = length;
-            this.n = var;
-        }
-
-        private final int l;
-
-        private final boolean n;
-
-        private int i;
-
-        private final Action<Type>[] es;
-
-        @Override
-        public boolean hasNext() {
-            return i < l;
-        }
-
-        @Override
-        public Action<Type> next() {
-            if (i >= l) {
-                throw new NoSuchElementException();
-            }
-            if (i < es.length) {
-                return es[i++];
-            }
-            i++;
-            if (n) {
-                return es[es.length];
-            }
-            return null;
-        }
-
     }
 
 }

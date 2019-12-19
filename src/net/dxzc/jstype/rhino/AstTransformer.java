@@ -601,7 +601,7 @@ public class AstTransformer {
                     }
                     args[i] = exp(scope, ai.next());
                 }
-                r = new NewInstance(exp(scope, n.getTarget()), args);
+                r = new NewInstance(scope, exp(scope, n.getTarget()), args);
                 break;
             }
             case Token.CALL: {
@@ -615,7 +615,7 @@ public class AstTransformer {
                     }
                     args[i] = exp(scope, ai.next());
                 }
-                r = new Invoke(exp(scope, n.getTarget()), args);
+                r = new Invoke(scope, exp(scope, n.getTarget()), args);
                 break;
             }
             case Token.FUNCTION:

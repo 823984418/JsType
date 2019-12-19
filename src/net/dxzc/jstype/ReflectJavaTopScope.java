@@ -51,9 +51,14 @@ public class ReflectJavaTopScope extends StandJsTopScope {
         super(type);
         Type pkgs = new ReflectJavaPackageType(Thread.currentThread().getContextClassLoader());
         pkgs.addMemberAction("java", t -> type.putMember("java", t));
+        pkgs.addMemberAction("javax", t -> type.putMember("javax", t));
         pkgs.addMemberAction("org", t -> type.putMember("org", t));
         pkgs.addMemberAction("com", t -> type.putMember("com", t));
+        pkgs.addMemberAction("edu", t -> type.putMember("edu", t));
         pkgs.addMemberAction("net", t -> type.putMember("net", t));
+        if ("Dalvik".equals(System.getProperty("java.vm.name"))) {
+            pkgs.addMemberAction("android", t -> type.putMember("android", t));
+        }
         map.put(PACKAGES, pkgs);
     }
 

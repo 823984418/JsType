@@ -16,12 +16,8 @@
  */
 package net.dxzc.jstype.exp;
 
-import java.util.Iterator;
 import net.dxzc.jstype.JsScope;
-import net.dxzc.jstype.Lvalue;
 import net.dxzc.jstype.Rvalue;
-import net.dxzc.jstype.Type;
-import net.dxzc.util.Action;
 
 /**
  * 形如{@code new a()}的表达式.
@@ -33,26 +29,16 @@ public class NewInstance extends Rvalue {
     /**
      * 构造表达式.
      *
+     * @param scope 调用域
      * @param target 目标
      * @param args 实参表
      */
-    public NewInstance(Rvalue target, Rvalue... args) {
+    public NewInstance(JsScope scope, Rvalue target, Rvalue... args) {
         int l = args.length;
 //        if (target instanceof Get) {
 //            ((Get) target).call();
 //        }
-        target.forType(t -> {
-            Iterator<Action<Type>> d = t.newInstance(l);
-            if (d != null) {
-                t.doNewInstance(this::addType);
-                for (int i = 0; i < l; i++) {
-                    if (!d.hasNext()) {
-                        throw new RuntimeException();
-                    }
-                    args[i].forType(d.next());
-                }
-            }
-        });
+        target.forType(t -> t.newInstance(this::addType, scope, args));
     }
 
 }

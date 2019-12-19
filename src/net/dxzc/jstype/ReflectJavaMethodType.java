@@ -68,6 +68,11 @@ public class ReflectJavaMethodType implements Type {
     }
 
     @Override
+    public Iterator<String> iteratorAll() {
+        return iterator();
+    }
+
+    @Override
     public Iterator<Type> getMemberType(String name) {
         if (THIS.equals(name)) {
             return Arrays.<Type>asList(new ReflectJavaObjectType(method.getDeclaringClass())).iterator();
@@ -76,22 +81,17 @@ public class ReflectJavaMethodType implements Type {
     }
 
     @Override
-    public Iterator<Action<Type>> invoke(int length) {
-        if (method.isVarArgs() && length >= method.getParameterCount() - 1) {
-            return new AItr(length);
+    public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
+        int length = args.length;
+        if (length == method.getParameterCount()
+                || method.isVarArgs() && length >= method.getParameterCount() - 1) {
+            Class c = method.getReturnType();
+            if (c != Void.TYPE) {
+                r.action(new ReflectJavaObjectType(c));
+            }
+            return true;
         }
-        if (length == method.getParameterCount()) {
-            return new AItr(length);
-        }
-        return null;
-    }
-
-    @Override
-    public void doInvoke(Action<Type> action) {
-        Class c = method.getReturnType();
-        if (c != Void.TYPE) {
-            action.action(new ReflectJavaObjectType(c));
-        }
+        return false;
     }
 
     @Override

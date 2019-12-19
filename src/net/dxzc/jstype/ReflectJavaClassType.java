@@ -117,6 +117,11 @@ public class ReflectJavaClassType implements Type {
     }
 
     @Override
+    public Iterator<String> iteratorAll() {
+        return iterator();
+    }
+
+    @Override
     public Iterator<Type> getMemberType(String name) {
         Set<Type> set = new HashSet<>();
         for (Method m : javaClass.getMethods()) {
@@ -147,24 +152,20 @@ public class ReflectJavaClassType implements Type {
     }
 
     @Override
-    public Iterator<Action<Type>> newInstance(int length) {
+    public boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
         if (javaClass.isEnum()
                 || javaClass.isInterface()
                 || javaClass.isAnnotation()
                 || Modifier.isAbstract(javaClass.getModifiers())) {
-            return null;
+            return false;
         }
+        int length = args.length;
         for (Constructor c : getArgs()) {
             if (c.isVarArgs() || c.getParameterCount() == length) {
-                return new OItr<>(null, length);
+                return true;
             }
         }
-        return null;
-    }
-
-    @Override
-    public void doNewInstance(Action<Type> action) {
-        action.action(new ReflectJavaObjectType(javaClass));
+        return false;
     }
 
     @Override

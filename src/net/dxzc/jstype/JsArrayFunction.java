@@ -35,10 +35,11 @@ public class JsArrayFunction extends JsNativeFunction {
     }
 
     @Override
-    public void doNewInstance(Action<Type> action) {
-        JsArrayType t = new JsArrayType();
-        t.extend(prototype);
-        action.action(t);
+    public boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
+        JsArrayType array = new JsArrayType();
+        addMemberAction(NEW, t -> array.extend(t));
+        r.action(array);
+        return true;
     }
 
 }

@@ -101,8 +101,13 @@ public class BaseMapType implements Type {
     }
 
     @Override
+    public Iterator<String> iteratorAll() {
+        return members.keySet().iterator();
+    }
+
+    @Override
     public Iterator<Type> getMemberType(String name) {
-        ActionSet<Type> ts = getMember(name);
+        ActionSet<Type> ts = members.get(name);
         if (ts == null) {
             return null;
         }

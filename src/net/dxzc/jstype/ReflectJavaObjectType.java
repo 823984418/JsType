@@ -108,6 +108,11 @@ public class ReflectJavaObjectType implements Type {
     }
 
     @Override
+    public Iterator<String> iteratorAll() {
+        return iterator();
+    }
+
+    @Override
     public Iterator<Type> getMemberType(String name) {
         boolean isInterface = javaClass.isInterface();
         Set<Type> set = new HashSet<>();

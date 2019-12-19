@@ -17,6 +17,7 @@
 package net.dxzc.jstype;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import net.dxzc.util.ActionSet;
@@ -46,7 +47,6 @@ public class JsType extends BaseMapType {
         childs.addAction(c -> {
             for (Map.Entry<String, ActionSet<Type>> e : members.entrySet()) {
                 String f = e.getKey();
-                c.getMember(f);
                 e.getValue().addAction(n -> c.putMember(f, n));
             }
         });
@@ -76,7 +76,6 @@ public class JsType extends BaseMapType {
         r = super.getMember(name);
         if (r != null) {
             for (Type t : childs) {
-                t.getMemberType(name);
                 r.addAction(n -> t.putMember(name, n));
             }
         }
@@ -93,7 +92,8 @@ public class JsType extends BaseMapType {
             if (type instanceof JsType) {
                 ((JsType) type).childs.add(this);
             } else {
-                for (String n : type) {
+                for (Iterator<String> it = type.iteratorAll(); it.hasNext();) {
+                    String n = it.next();
                     type.addMemberAction(n, t -> putMember(n, t));
                 }
             }

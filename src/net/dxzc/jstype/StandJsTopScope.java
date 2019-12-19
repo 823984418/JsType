@@ -62,15 +62,18 @@ public class StandJsTopScope extends JsTopScope {
         arrf.extend(fun);
         type.putMember(ARRAY, arrf);
 
-        JsType str = buildClass(STRING, obj);
-        Type strf = getPrototype(STRING);
-        JsType num = buildClass(NUMBER, obj);
-        Type numf = getPrototype(NUMBER);
-        JsType boo = buildClass(BOOLEAN, obj);
-        Type boof = getPrototype(BOOLEAN);
-
-        JsType reg = buildClass(REGEXP, obj, "regex");
-        Type regf = getPrototype(REGEXP);
+        JsNativeFunction strf = buildClass(STRING, obj, "value");
+        Type str = getPrototype(STRING);
+        JsNativeFunction numf = buildClass(NUMBER, obj, "value");
+        Type num = getPrototype(NUMBER);
+        JsNativeFunction boof = buildClass(BOOLEAN, obj, "value");
+        Type boo = getPrototype(BOOLEAN);
+        JsNativeFunction regf = buildClass(REGEXP, obj, "regex");
+        Type reg = getPrototype(REGEXP);
+        JsNativeFunction datef = buildClass(DATE, obj, "milliseconds");
+        Type date = getPrototype(DATE);
+        JsNativeFunction errf = buildClass(ERROR, obj, "message");
+        Type err = getPrototype(ERROR);
 
         JsType math = new JsType("Math");
         map.put(MATH, math);
@@ -129,6 +132,102 @@ public class StandJsTopScope extends JsTopScope {
         method(math, "sqrt", num, "x");
         method(math, "tan", num, "x");
 
+        datef.putMember("now", date);
+        method(date, "getDate", num);
+        method(date, "getDay", num);
+        method(date, "getFullYear", num);
+        method(date, "getHours", num);
+        method(date, "getMilliseconds", num);
+        method(date, "getMinutes", num);
+        method(date, "getMonth", num);
+        method(date, "getSeconds", num);
+        method(date, "getTime", num);
+        method(date, "getTimezoneOffset", num);
+        method(date, "getUTCDate", num);
+        method(date, "getUTCDay", num);
+        method(date, "getUTCFullYear", num);
+        method(date, "getUTCHours", num);
+        method(date, "getUTCMilliseconds", num);
+        method(date, "getUTCMinutes", num);
+        method(date, "getUTCMonth", num);
+        method(date, "getUTCSeconds", num);
+        method(date, "getYear", num);
+        method(date, "setDate", null, "dayValue");
+        method(date, "setFullYear", null, "yearValue", "monthValueOpt", "dayValueOpt");
+        method(date, "setHours", null, "hoursValue", "minutesValueOpt", "secondsValueOpt", "msValueOpt");
+        method(date, "setMilliseconds", null, "millisecondsValue");
+        method(date, "setMinutes", null, "minutesValueOpt", "secondsValueOpt", "msValueOpt");
+        method(date, "setMonth", null, "monthValue", "dayValueOpt");
+        method(date, "setSeconds", null, "secondsValue", "msValueOpt");
+        method(date, "setTime", null, "timeValue");
+        method(date, "setUTCDate", null, "dayValue");
+        method(date, "setUTCFullYear", null, "yearValueOpt", "monthValueOpt", "dayValueOpt");
+        method(date, "setUTCHours", null, "hoursValueOpt", "minutesValueOpt", "secondsValueOpt", "msValueOpt");
+        method(date, "setUTCMilliseconds", null, "millisecondsValue");
+        method(date, "setUTCMinutes", null, "minutesValueOpt", "secondsValueOpt", "msValueOpt");
+        method(date, "setUTCMonth", null, "monthValueOpt", "dayValueOpt");
+        method(date, "setUTCSeconds", null, "secondsValueOpt", "msValueOpt");
+        method(date, "setYear", null, "yearValue");
+        method(date, "toGMTString", str);
+        method(date, "toLocaleString", str);
+        method(date, "toLocaleDateString", str);
+        method(date, "toLocaleTimeString", str);
+        method(date, "toSource", str);
+        method(date, "toString", str);
+        method(date, "toUTCString", str);
+        method(date, "valueOf", num);
+
+        err.putMember("description", str);
+        err.putMember("fileName", str);
+        err.putMember("lineNumber", num);
+        err.putMember("message", str);
+        err.putMember("name", str);
+        err.putMember("number", str);
+        err.putMember("stack", str);
+
+        numf.putMember("MAX_VALUE", num);
+        numf.putMember("MIN_VALUE", num);
+        numf.putMember("NaN", num);
+        numf.putMember("NEGATIVE_INFINITY", num);
+        numf.putMember("POSITIVE_INFINITY", num);
+        method(num, "toExponential", str);
+        method(num, "toFixed", str);
+        method(num, "toLocaleString", str);
+        method(num, "toPrecision", str);
+        method(num, "toSource", str);
+        method(num, "toString", str);
+        method(num, "valueOf", num);
+
+        method(boo, "toSource", str);
+        method(boo, "toString", str);
+        method(boo, "valueOf", num);
+
+        JsArrayType strarr = new JsArrayType();
+        strarr.putMember(Type.CONTAIN, str);
+        method(reg, "exec", strarr, "strOpt");
+        method(reg, "test", boo, "strOpt");
+        method(reg, "toSource", str);
+        method(reg, "toString", str);
+
+        str.putMember("length", num);
+        method(str, "charAt", str, "index");
+        method(str, "charCodeAt", num, "indexOpt");
+        method(str, "concat", str, "...string");
+        method(str, "indexOf", num, "searchValue", "fromIndexOpt");
+        method(str, "lastIndexOf", num, "searchValue", "fromIndexOpt");
+        method(str, "match", strarr, "regexp");
+        method(str, "replace", str, "regexp", "newSubStr");
+        method(str, "search", num, "regexp");
+        method(str, "slice", str, "beginslice", "endSliceOpt");
+        method(str, "split", strarr, "separatorOpt", "limitOpt");
+        method(str, "substr", str, "start", "lengthOpt");
+        method(str, "substring", str, "indexA", "indexBOpt");
+        method(str, "toLowerCase", str);
+        method(str, "toSource", str);
+        method(str, "toString", str);
+        method(str, "toUpperCase", str);
+        method(str, "valueOf", num);
+
     }
 
     /**
@@ -151,16 +250,16 @@ public class StandJsTopScope extends JsTopScope {
      * @param name 函数名
      * @param su 原型继承
      * @param args 形参表
-     * @return 实例原型
+     * @return 函数
      */
-    public JsType buildClass(String name, JsType su, String... args) {
+    public JsNativeFunction buildClass(String name, JsType su, String... args) {
         JsType pro = new JsType(name);
         pro.extend(su);
         map.put(name, pro);
         JsNativeFunction f = new JsNativeFunction(name, pro);
         f.extend(getPrototype(FUNCTION));
         getScopeType().putMember(name, f);
-        return pro;
+        return f;
     }
 
     /**

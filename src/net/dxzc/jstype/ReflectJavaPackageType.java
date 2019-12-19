@@ -146,6 +146,11 @@ public class ReflectJavaPackageType implements Type {
     }
 
     @Override
+    public Iterator<String> iteratorAll() {
+        return iterator();
+    }
+
+    @Override
     public Iterator<Type> getMemberType(String name) {
         Set<Type> set = new HashSet<>();
         ReflectJavaPackageType pt = getPackageType(name);

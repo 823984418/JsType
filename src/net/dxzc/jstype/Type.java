@@ -99,7 +99,14 @@ public interface Type extends Iterable<String> {
     public Iterator<String> iterator();
 
     /**
-     * 获取某个成员的所有类型.实现也许会返回{@code null}来表示不可能有此成员
+     * 迭代所有成员.
+     *
+     * @return 成员迭代器
+     */
+    public Iterator<String> iteratorAll();
+
+    /**
+     * 获取某个成员的所有类型.实现也许会返回{@code null}来表示不存在此成员
      *
      * @param name 成员
      * @return 类型迭代器
@@ -116,29 +123,25 @@ public interface Type extends Iterable<String> {
     /**
      * 尝试以指定参数调用.
      *
-     * @param length 参数个数
-     * @return 参数接入或者{@code null}
+     * @param r 返回类型操作
+     * @param i 调用域
+     * @param args 参数
+     * @return 可否调用
      */
-    public default Iterator<Action<Type>> invoke(int length) {
-        return null;
-    }
-
-    public default void doInvoke(Action<Type> action) {
-        addMemberAction(Type.RETURN, action);
+    public default boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
+        return false;
     }
 
     /**
      * 尝试以指定参数实例化.
      *
-     * @param length 参数个数
-     * @return 参数接入或者{@code null}
+     * @param r 返回类型操作
+     * @param i 调用域
+     * @param args 参数
+     * @return 可否调用
      */
-    public default Iterator<Action<Type>> newInstance(int length) {
-        return null;
-    }
-
-    public default void doNewInstance(Action<Type> action) {
-        addMemberAction(NEW, action);
+    public default boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
+        return false;
     }
 
     /**

@@ -19,7 +19,7 @@ package net.dxzc.jstype;
 import net.dxzc.util.Action;
 
 /**
- * 返回数组的方法需要特殊实现以避免反向传播.
+ * 返回数组的方法需要特殊实现以避免反向传播及类型复制.
  *
  * @author 823984418@qq.com
  */
@@ -42,10 +42,12 @@ public class JsArrayMethod extends JsNativeFunction {
     private final Type arrayType;
 
     @Override
-    public void doInvoke(Action<Type> action) {
-        JsArrayType t = new JsArrayType();
-        t.extend(arrayType);
-        action.action(t);
+    public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
+        JsArrayType array = new JsArrayType();
+        addMemberAction(RETURN, t -> array.extend(t));
+        i.forType(t -> array.extend(t));
+        r.action(array);
+        return true;
     }
 
 }

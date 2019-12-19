@@ -18,7 +18,6 @@ package net.dxzc.jstype.exp;
 
 import net.dxzc.jstype.Lvalue;
 import net.dxzc.jstype.Rvalue;
-import net.dxzc.jstype.Type;
 
 /**
  * 形如{@code a.b}的表达式.
@@ -42,22 +41,8 @@ public class Get extends Lvalue {
         });
     }
 
-    private final Rvalue target;
+    public final Rvalue target;
 
-    private final String name;
-
-    private boolean beCall;
-
-    /**
-     * 适用于{@code a.b()}的调用中用于绑定{@code b}的作用域{@code this}.
-     */
-    protected void call() {
-        if (!beCall) {
-            beCall = true;
-            target.forType(
-                    t -> t.addMemberAction(name,
-                            f -> f.putMember(Type.THIS, t)));
-        }
-    }
+    public final String name;
 
 }
