@@ -67,7 +67,7 @@ public class JsFunction extends JsType {
     /**
      * 实例原型.
      */
-    protected JsType prototype;
+    protected final JsType prototype;
 
     /**
      * 函数作用域.
@@ -125,8 +125,15 @@ public class JsFunction extends JsType {
     @Override
     public boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
         argInput(args);
+        putMember(THIS, prototype);
         addMemberAction(NEW, r);
         return true;
+    }
+
+    @Override
+    public void addDoc(String doc) {
+        super.addDoc(doc);
+        prototype.addDoc(doc);
     }
 
     @Override

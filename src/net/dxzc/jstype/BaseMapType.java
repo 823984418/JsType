@@ -19,6 +19,8 @@ package net.dxzc.jstype;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.dxzc.util.Action;
@@ -117,17 +119,27 @@ public class BaseMapType implements Type {
     /**
      * 添加一个文档描述.
      *
-     * @param s 描述
+     * @param doc 描述
      */
-    public void addDoc(String s) {
-        doc = s + doc;
+    public void addDoc(String doc) {
+        docs.add(doc);
     }
 
-    private String doc = "";
+    private List<String> docs = new LinkedList<>();
 
     @Override
     public String getDoc() {
-        return doc;
+        if (docs.isEmpty()) {
+            return "No has document";
+        }
+        if (docs.size() == 1) {
+            return docs.get(0);
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String s : docs) {
+            sb.append(s);
+        }
+        return sb.toString();
     }
 
 }

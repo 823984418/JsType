@@ -16,6 +16,7 @@
  */
 package net.dxzc.jstype;
 
+import java.util.Collections;
 import java.util.Iterator;
 import net.dxzc.util.Action;
 
@@ -106,12 +107,26 @@ public interface Type extends Iterable<String> {
     public Iterator<String> iteratorAll();
 
     /**
-     * 获取某个成员的所有类型.实现也许会返回{@code null}来表示不存在此成员
+     * 获取某个成员的所有类型.实现也许会返回{@code null}来表示(暂时)不存在此成员
      *
      * @param name 成员
      * @return 类型迭代器
      */
     public Iterator<Type> getMemberType(String name);
+
+    /**
+     * 获取某个成员的所有类型.如果不存在则返回空的迭代器
+     *
+     * @param name 成员
+     * @return 类型迭代器
+     */
+    public default Iterator<Type> getMemberTypeOrEmpty(String name) {
+        Iterator<Type> r = getMemberType(name);
+        if (r == null) {
+            return Collections.<Type>emptyIterator();
+        }
+        return r;
+    }
 
     /**
      * 获取文档信息.
@@ -162,7 +177,7 @@ public interface Type extends Iterable<String> {
         StringBuilder sb = new StringBuilder();
         sb.append(argsToString());
         sb.append(":");
-        sb.append(typesToString(getMemberType(RETURN)));
+        sb.append(typesToString(getMemberTypeOrEmpty(RETURN)));
         return sb.toString();
     }
 
@@ -172,7 +187,7 @@ public interface Type extends Iterable<String> {
      * @return 表述字符串
      */
     public default String containToString() {
-        Iterator<Type> contain = getMemberType(CONTAIN);
+        Iterator<Type> contain = getMemberTypeOrEmpty(CONTAIN);
         if (contain == null) {
             return "";
         }
@@ -194,7 +209,7 @@ public interface Type extends Iterable<String> {
         for (String m : this) {
             sb.append(m);
             sb.append(":");
-            sb.append(typesToString(getMemberType(m)));
+            sb.append(typesToString(getMemberTypeOrEmpty(m)));
         }
         sb.append("}");
         return sb.toString();

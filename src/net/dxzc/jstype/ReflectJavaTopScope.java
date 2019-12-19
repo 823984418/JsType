@@ -49,7 +49,7 @@ public class ReflectJavaTopScope extends StandJsTopScope {
      */
     public ReflectJavaTopScope(JsScopeType type) {
         super(type);
-        Type pkgs = new ReflectJavaPackageType(Thread.currentThread().getContextClassLoader());
+        ReflectJavaPackageType pkgs = new ReflectJavaPackageType(Thread.currentThread().getContextClassLoader());
         pkgs.addMemberAction("java", t -> type.putMember("java", t));
         pkgs.addMemberAction("javax", t -> type.putMember("javax", t));
         pkgs.addMemberAction("org", t -> type.putMember("org", t));

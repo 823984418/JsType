@@ -487,6 +487,14 @@ public class AstTransformer {
             case Token.ASSIGN: {
                 Rvalue lv = exp(scope, ((Assignment) node).getLeft());
                 Rvalue rv = exp(scope, ((Assignment) node).getRight());
+                String doc = node.getJsDoc();
+                if (doc != null) {
+                    rv.forType(t -> {
+                        if (t instanceof JsType) {
+                            ((JsType) t).addDoc(initDoc(doc));
+                        }
+                    });
+                }
                 if (lv instanceof Lvalue) {
                     r = new Assign((Lvalue) lv, rv);
                 } else {

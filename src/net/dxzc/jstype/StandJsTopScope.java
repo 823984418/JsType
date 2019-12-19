@@ -227,6 +227,30 @@ public class StandJsTopScope extends JsTopScope {
         method(str, "toString", str);
         method(str, "toUpperCase", str);
         method(str, "valueOf", num);
+        method(str, "anchor", str, "nameAttribute");
+        method(str, "big", str);
+        method(str, "blink", str);
+        method(str, "bold", str);
+        method(str, "fixed", str);
+        method(str, "fontcolor", str, "color");
+        method(str, "fontsize", str, "size");
+        method(str, "italics", str);
+        method(str, "link", str, "hrefAttribute");
+        method(str, "small", str);
+        method(str, "strike", str);
+        method(str, "sub", str);
+        method(str, "sup", str);
+
+        method(type, "isFinite", num, "testValue");
+        method(type, "isNaN", num, "testValue");
+        method(type, "parseFloat", num, "string");
+        method(type, "parseInt", num, "string");
+        method(type, "eval", obj, "string");
+        method(type, "decodeURI", str, "encodedURI");
+        
+        type.getMember("undefined");
+        type.putMember("NaN", num);
+        type.putMember("Infinity", num);
 
     }
 
