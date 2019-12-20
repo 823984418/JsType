@@ -51,6 +51,9 @@ public class AstFactory {
      * @return 语法树
      */
     public AstRoot build(String script, String name, ErrorCollector ec) {
+        if(ec == null){
+            ec = (ErrorCollector) environs.getErrorReporter();
+        }
         Parser p = new Parser(environs, ec);
         return p.parse(script, name, 1);
     }

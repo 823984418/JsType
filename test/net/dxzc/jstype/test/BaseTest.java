@@ -34,20 +34,20 @@ import org.mozilla.javascript.ast.AstRoot;
 public class BaseTest extends AstTransformer {
 
     public BaseTest(String s, String n, int i) {
-        factory = new JsScopeFactory() {
+        super(new JsScopeFactory() {
             @Override
             public JsTopScope buildTopScope() {
                 JsScopeType st = new JsScopeType();
                 st.putMember(Type.THIS, st);
                 return new ReflectJavaTopScope(st);
             }
-        };
+        });
         index = i;
         AstFactory a = new AstFactory();
-        AstRoot ast = a.build(s, n, ec);
+        AstRoot ast = a.build(s, n, errorCollector);
         //System.out.println(ast.debugPrint());
         JsTopScope sc = transformScript(ast);
-        System.out.print(ec);
+        System.out.print(errorCollector);
     }
 
     public int index;

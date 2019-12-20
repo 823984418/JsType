@@ -81,20 +81,20 @@ public class AstTransformer {
     /**
      * 具有默认的警告信息收集器和环境工厂的翻译器.
      */
-    public AstTransformer() {
-        ec = new ErrorCollector();
-        factory = new JsScopeFactory();
+    public AstTransformer(JsScopeFactory scopeFactory) {
+        errorCollector = new ErrorCollector();
+        this.scopeFactory = scopeFactory;
     }
 
     /**
      * 环境工厂.
      */
-    protected JsScopeFactory factory;
+    protected final JsScopeFactory scopeFactory;
 
     /**
      * 警告信息收集器.
      */
-    public ErrorCollector ec;
+    public ErrorCollector errorCollector;
 
     /**
      * 当出现表达式值时调用. 应当被子类覆盖
@@ -118,6 +118,16 @@ public class AstTransformer {
 
     }
 
+    /**
+     * 但函数结点没有名字时. 返回特定的名字
+     *
+     * @param node 函数结点
+     * @return 名字
+     */
+    protected String lambdaFunctionName(FunctionNode node) {
+        return "$lambda" + node.getAbsolutePosition();
+    }
+
     private void onValueByNode(Rvalue value, AstNode node) {
         onValue(value, node.getAbsolutePosition(), node.getLength());
     }
@@ -133,7 +143,7 @@ public class AstTransformer {
      * @return 得到的顶层域
      */
     public JsTopScope transformScript(AstRoot node) {
-        JsTopScope r = factory.buildTopScope();
+        JsTopScope r = scopeFactory.buildTopScope();
         initScope(r, node);
         r.setTypeName(node.getSourceName());
         for (AstNode e : node.getStatements()) {
@@ -147,7 +157,7 @@ public class AstTransformer {
     }
 
     private void warning(String message, AstNode node) {
-        ec.warning(message, node.getAstRoot().getSourceName(), node.getAbsolutePosition(), node.getLength());
+        errorCollector.warning(message, node.getAstRoot().getSourceName(), node.getAbsolutePosition(), node.getLength());
     }
 
     /**
@@ -207,7 +217,7 @@ public class AstTransformer {
             case Token.FOR: {
                 if (node instanceof ForLoop) {
                     ForLoop s = (ForLoop) node;
-                    JsScope ns = factory.buildBlock(scope);
+                    JsScope ns = scopeFactory.buildBlock(scope);
                     initScope(ns, s);
                     transform(ns, s.getInitializer());
                     exp(ns, s.getCondition());
@@ -215,7 +225,7 @@ public class AstTransformer {
                     transform(ns, s.getBody());
                 } else if (node instanceof ForInLoop) {
                     ForInLoop s = (ForInLoop) node;
-                    JsScope ns = factory.buildBlock(scope);
+                    JsScope ns = scopeFactory.buildBlock(scope);
                     initScope(ns, s);
                     exp(scope, s.getIteratedObject());
                     AstNode var = s.getIterator();
@@ -243,7 +253,7 @@ public class AstTransformer {
             }
             case Token.WHILE: {
                 WhileLoop s = (WhileLoop) node;
-                JsScope ns = factory.buildBlock(scope);
+                JsScope ns = scopeFactory.buildBlock(scope);
                 initScope(ns, s);
                 exp(ns, s.getCondition());
                 transform(ns, s.getBody());
@@ -251,7 +261,7 @@ public class AstTransformer {
             }
             case Token.DO: {
                 DoLoop s = (DoLoop) node;
-                JsScope ns = factory.buildBlock(scope);
+                JsScope ns = scopeFactory.buildBlock(scope);
                 initScope(ns, s);
                 transform(ns, s.getBody());
                 exp(ns, s.getCondition());
@@ -324,7 +334,7 @@ public class AstTransformer {
             case Token.BLOCK: {
                 JsScope s;
                 if (node instanceof Scope) {
-                    s = factory.buildBlock(scope);
+                    s = scopeFactory.buildBlock(scope);
                     initScope(scope, (Scope) node);
                 } else {
                     s = scope;
@@ -485,10 +495,11 @@ public class AstTransformer {
                 break;
             }
             case Token.ASSIGN: {
-                Rvalue lv = exp(scope, ((Assignment) node).getLeft());
-                Rvalue rv = exp(scope, ((Assignment) node).getRight());
+                Assignment s = (Assignment) node;
+                Rvalue lv = exp(scope, s.getLeft());
+                Rvalue rv = exp(scope, s.getRight());
                 String doc = node.getJsDoc();
-                if (doc != null) {
+                if (doc != null && s.getRight().getType() == Token.FUNCTION) {
                     rv.forType(t -> {
                         if (t instanceof JsType) {
                             ((JsType) t).addDoc(initDoc(doc));
@@ -637,6 +648,8 @@ public class AstTransformer {
             case Token.ERROR:
                 warning("Error token", node);
                 break;
+            case Token.COMMENT:
+                break;
             default:
                 warning("Unknow expression:" + Token.typeToName(type) + " " + node.getClass().getSimpleName(), node);
         }
@@ -658,9 +671,9 @@ public class AstTransformer {
         int type = node.getFunctionType();
         String name = node.getName();
         if (name.isEmpty()) {
-            name = "$lambda";
+            name = lambdaFunctionName(node);
         }
-        JsScope s = factory.buildScope(scope);
+        JsScope s = scopeFactory.buildScope(scope);
         initScope(s, node);
         s.setTypeName(name);
         List<AstNode> as = node.getParams();
