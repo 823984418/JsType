@@ -80,6 +80,8 @@ public class AstTransformer {
 
     /**
      * 具有默认的警告信息收集器和环境工厂的翻译器.
+     *
+     * @param scopeFactory 脚本域工厂
      */
     public AstTransformer(JsScopeFactory scopeFactory) {
         errorCollector = new ErrorCollector();
