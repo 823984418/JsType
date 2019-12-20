@@ -14,62 +14,61 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.dxzc.jstype;
+package net.dxzc.jstype.refjava;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import net.dxzc.jstype.Rvalue;
+import net.dxzc.jstype.Type;
 import net.dxzc.util.Action;
 
 /**
- * 封装一个类的实例部分.
+ * 类的静态部分原型.
  *
  * @author 823984418@qq.com
  */
-public class ReflectJavaObjectType implements Type {
+public class ReflectJavaClassType implements Type {
 
     /**
-     * 封装一个类实例.
+     * 封装一个类的静态部分.
      *
-     * @param c 类
+     * @param c 封装的java类
      */
-    public ReflectJavaObjectType(Class c) {
+    public ReflectJavaClassType(Class c) {
         javaClass = c;
     }
 
-    /**
-     * 封装的类.
-     */
     public final Class javaClass;
 
     private Set<String> members;
 
+    private Constructor[] cs;
+
     @Override
     public boolean addMemberAction(String name, Action<Type> action) {
-        if (Type.CONTAIN.equals(name)) {
-            if (javaClass.isArray()) {
-                action.action(new ReflectJavaObjectType(javaClass.getComponentType()));
-                return true;
-            } else {
-                return false;
-            }
+        if (THIS.equals(name)
+                && javaClass.isMemberClass()
+                && !Modifier.isStatic(javaClass.getModifiers())) {
+            action.action(new ReflectJavaObjectType(javaClass.getDeclaringClass()));
         }
-        boolean isInterface = javaClass.isInterface();
         for (Method m : javaClass.getMethods()) {
-            if ((isInterface || !(Modifier.isStatic(m.getModifiers()))) && m.getName().equals(name)) {
+            if (Modifier.isStatic(m.getModifiers()) && m.getName().equals(name)) {
                 action.action(new ReflectJavaMethodType(m));
             }
         }
         for (Field f : javaClass.getFields()) {
-            if (!(Modifier.isStatic(f.getModifiers())) && f.getName().equals(name)) {
+            if (Modifier.isStatic(f.getModifiers()) && f.getName().equals(name)) {
                 action.action(new ReflectJavaObjectType(f.getType()));
             }
         }
         for (Class c : javaClass.getClasses()) {
-            if (!(Modifier.isStatic(c.getModifiers())) && c.getSimpleName().equals(name)) {
+            if (Modifier.isStatic(c.getModifiers()) && c.getSimpleName().equals(name)) {
                 action.action(new ReflectJavaClassType(c));
             }
         }
@@ -78,6 +77,18 @@ public class ReflectJavaObjectType implements Type {
 
     @Override
     public boolean putMember(String name, Type type) {
+        if (THIS.equals(name)
+                && javaClass.isMemberClass()
+                && !Modifier.isStatic(javaClass.getModifiers())
+                && type instanceof ReflectJavaObjectType
+                && javaClass.getDeclaringClass().isAssignableFrom(((ReflectJavaObjectType) type).javaClass)) {
+            return true;
+        }
+        for (Field f : javaClass.getFields()) {
+            if (Modifier.isStatic(f.getModifiers()) && f.getName().equals(name)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -88,17 +99,17 @@ public class ReflectJavaObjectType implements Type {
             set = new HashSet<>();
             boolean isInterface = javaClass.isInterface();
             for (Method m : javaClass.getMethods()) {
-                if (isInterface || !Modifier.isStatic(m.getModifiers())) {
+                if (isInterface || Modifier.isStatic(m.getModifiers())) {
                     set.add(m.getName());
                 }
             }
             for (Field f : javaClass.getFields()) {
-                if (!Modifier.isStatic(f.getModifiers())) {
+                if (Modifier.isStatic(f.getModifiers())) {
                     set.add(f.getName());
                 }
             }
             for (Class c : javaClass.getClasses()) {
-                if (!Modifier.isStatic(c.getModifiers())) {
+                if (Modifier.isStatic(c.getModifiers())) {
                     set.add(c.getSimpleName());
                 }
             }
@@ -114,39 +125,61 @@ public class ReflectJavaObjectType implements Type {
 
     @Override
     public Iterator<Type> getMemberType(String name) {
-        boolean isInterface = javaClass.isInterface();
         Set<Type> set = new HashSet<>();
         for (Method m : javaClass.getMethods()) {
-            if ((isInterface || !Modifier.isStatic(m.getModifiers())) && m.getName().equals(name)) {
+            if (Modifier.isStatic(m.getModifiers()) && m.getName().equals(name)) {
                 set.add(new ReflectJavaMethodType(m));
             }
         }
         for (Field f : javaClass.getFields()) {
-            if (!(Modifier.isStatic(f.getModifiers())) && f.getName().equals(name)) {
+            if (Modifier.isStatic(f.getModifiers()) && f.getName().equals(name)) {
                 set.add(new ReflectJavaObjectType(f.getType()));
             }
         }
         for (Class c : javaClass.getClasses()) {
-            if (!(Modifier.isStatic(c.getModifiers())) && c.getSimpleName().equals(name)) {
+            if (Modifier.isStatic(c.getModifiers()) && c.getSimpleName().equals(name)) {
                 set.add(new ReflectJavaClassType(c));
             }
         }
         return set.iterator();
     }
 
+    private Constructor[] getArgs() {
+        Constructor[] cc = cs;
+        if (cs == null) {
+            cc = javaClass.getConstructors();
+            cs = cc;
+        }
+        return cc;
+    }
+
+    @Override
+    public boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
+        if (javaClass.isEnum() || javaClass.isAnnotation()) {
+            return false;
+        }
+        int length = args.length;
+        for (Constructor c : getArgs()) {
+            if (c.isVarArgs() || c.getParameterCount() == length) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String getDoc() {
-        return javaClass.getTypeName();
+        return javaClass.getTypeName() + ".class";
     }
 
     @Override
     public String toString() {
-        return javaClass.getTypeName();
+        return "class " + javaClass.getName();
     }
 
     @Override
     public int hashCode() {
-        return -javaClass.hashCode();
+        return javaClass.hashCode();
     }
 
     @Override
@@ -154,10 +187,36 @@ public class ReflectJavaObjectType implements Type {
         if (obj == null) {
             return false;
         }
-        if (obj instanceof ReflectJavaObjectType) {
-            return javaClass.equals(((ReflectJavaObjectType) obj).javaClass);
+        if (obj instanceof ReflectJavaClassType) {
+            return javaClass.equals(((ReflectJavaClassType) obj).javaClass);
         }
         return false;
+    }
+
+    private static class OItr<E> implements Iterator<E> {
+
+        private OItr(E o, int s) {
+            obj = o;
+            c = s;
+        }
+
+        private final E obj;
+
+        private int c;
+
+        @Override
+        public boolean hasNext() {
+            return c > 0;
+        }
+
+        @Override
+        public E next() {
+            if (c-- <= 0) {
+                throw new NoSuchElementException();
+            }
+            return obj;
+        }
+
     }
 
 }

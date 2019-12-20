@@ -117,7 +117,9 @@ public class JsFunction extends JsType {
     @Override
     public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
         argInput(args);
-        i.forType(t -> putMember(THIS, t));
+        if (i != null) {
+            i.forType(t -> putMember(THIS, t));
+        }
         addMemberAction(RETURN, r);
         return true;
     }

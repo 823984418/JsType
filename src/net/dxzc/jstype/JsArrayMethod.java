@@ -45,7 +45,9 @@ public class JsArrayMethod extends JsNativeFunction {
     public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
         JsArrayType array = new JsArrayType();
         addMemberAction(RETURN, t -> array.extend(t));
-        i.forType(t -> array.extend(t));
+        if (i != null) {
+            i.forType(t -> array.extend(t));
+        }
         r.action(array);
         return true;
     }

@@ -16,7 +16,6 @@
  */
 package net.dxzc.jstype.exp;
 
-import net.dxzc.jstype.JsScope;
 import net.dxzc.jstype.Lvalue;
 import net.dxzc.jstype.Rvalue;
 
@@ -30,16 +29,15 @@ public class Invoke extends Lvalue {
     /**
      * 构造表达式.
      *
-     * @param scope 调用域
      * @param target 目标
      * @param args 实参表
      */
-    public Invoke(JsScope scope, Rvalue target, Rvalue... args) {
+    public Invoke(Rvalue target, Rvalue... args) {
         int l = args.length;
         if (target instanceof Get) {
             target.forType(t -> t.invoke(this::addType, ((Get) target).target, args));
         } else {
-            target.forType(t -> t.invoke(this::addType, scope, args));
+            target.forType(t -> t.invoke(this::addType, null, args));
         }
     }
 

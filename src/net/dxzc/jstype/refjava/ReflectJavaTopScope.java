@@ -14,8 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.dxzc.jstype;
+package net.dxzc.jstype.refjava;
 
+import net.dxzc.jstype.JsScopeType;
+import net.dxzc.jstype.Rvalue;
+import net.dxzc.jstype.StandJsTopScope;
 import net.dxzc.jstype.exp.Assign;
 import net.dxzc.jstype.exp.Get;
 

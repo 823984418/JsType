@@ -16,7 +16,6 @@
  */
 package net.dxzc.jstype.exp;
 
-import net.dxzc.jstype.JsScope;
 import net.dxzc.jstype.Rvalue;
 
 /**
@@ -29,16 +28,15 @@ public class NewInstance extends Rvalue {
     /**
      * 构造表达式.
      *
-     * @param scope 调用域
      * @param target 目标
      * @param args 实参表
      */
-    public NewInstance(JsScope scope, Rvalue target, Rvalue... args) {
+    public NewInstance(Rvalue target, Rvalue... args) {
         int l = args.length;
 //        if (target instanceof Get) {
 //            ((Get) target).call();
 //        }
-        target.forType(t -> t.newInstance(this::addType, scope, args));
+        target.forType(t -> t.newInstance(this::addType, null, args));
     }
 
 }

@@ -14,13 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.dxzc.jstype;
+package net.dxzc.jstype.refjava;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import net.dxzc.jstype.Type;
 import net.dxzc.util.Action;
 
 /**

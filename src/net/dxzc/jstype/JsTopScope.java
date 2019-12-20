@@ -43,6 +43,8 @@ public abstract class JsTopScope extends JsScope {
 
     public static final String ERROR = "Error";
 
+    public static final String XML = "XML";
+
     /**
      * 构造一个顶层域.
      *
@@ -59,5 +61,13 @@ public abstract class JsTopScope extends JsScope {
      * @return 结果
      */
     public abstract Type getPrototype(String name);
+
+    /**
+     * 设置一个原型.
+     *
+     * @param name 名字
+     * @param type 原型
+     */
+    public abstract void putPrototypr(String name, Type type);
 
 }

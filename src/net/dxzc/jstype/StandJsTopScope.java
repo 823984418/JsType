@@ -41,6 +41,8 @@ public class StandJsTopScope extends JsTopScope {
     public StandJsTopScope(JsScopeType type) {
         super(type);
 
+        type.putMember(Type.THIS, type);
+
         JsType fun = new JsType("Function");
         map.put(FUNCTION, fun);
         JsNativeFunction funf = new JsNativeFunction("Function", fun);
@@ -247,7 +249,7 @@ public class StandJsTopScope extends JsTopScope {
         method(type, "parseInt", num, "string");
         method(type, "eval", obj, "string");
         method(type, "decodeURI", str, "encodedURI");
-        
+
         type.getMember("undefined");
         type.putMember("NaN", num);
         type.putMember("Infinity", num);
@@ -261,11 +263,12 @@ public class StandJsTopScope extends JsTopScope {
 
     @Override
     public Type getPrototype(String name) {
-        Type r = map.get(name);
-        if (r == null) {
-            throw new RuntimeException();
-        }
-        return r;
+        return map.get(name);
+    }
+
+    @Override
+    public void putPrototypr(String name, Type type) {
+        map.put(name, type);
     }
 
     /**
