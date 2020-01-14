@@ -45,7 +45,8 @@ public class BaseTest extends AstTransformer {
         AstFactory a = new AstFactory();
         AstRoot ast = a.build(s, n, errorCollector);
         //System.out.println(ast.debugPrint());
-        JsTopScope sc = transformScript(ast);
+        JsTopScope scope = buildJsTopScope();
+        transformScript(scope, ast);
         System.out.print(errorCollector);
     }
 

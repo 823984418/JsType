@@ -140,19 +140,25 @@ public class AstTransformer {
     }
 
     /**
+     * 得到一个顶层域.
+     *
+     * @return 顶层域
+     */
+    public JsTopScope buildJsTopScope() {
+        return scopeFactory.buildTopScope();
+    }
+
+    /**
      * 翻译一个脚本的语法树.
      *
+     * @param scope
      * @param node 语法树
-     * @return 得到的顶层域
      */
-    public JsTopScope transformScript(AstRoot node) {
-        JsTopScope r = scopeFactory.buildTopScope();
-        initScope(r, node);
-        r.setTypeName(node.getSourceName());
+    public void transformScript(JsScope scope, AstRoot node) {
+        initScope(scope, node);
         for (AstNode e : node.getStatements()) {
-            transform(r, e);
+            transform(scope, e);
         }
-        return r;
     }
 
     private static void set(Rvalue v, String n, Rvalue e) {
@@ -397,11 +403,12 @@ public class AstTransformer {
                 ElementGet e = (ElementGet) node;
                 AstNode g = e.getElement();
                 Rvalue v = exp(scope, e.getTarget());
+                Rvalue t = exp(scope, e.getElement());
                 if (g.getType() == Token.STRING) {
                     String name = ((StringLiteral) g).getValue();
                     r = new Get(v, name);
                 } else {
-                    r = new ArrayGet(scope.getTopScope(), v, exp(scope, e.getElement()));
+                    r = new ArrayGet(scope.getTopScope(), v, t);
                 }
                 break;
             }
@@ -693,7 +700,12 @@ public class AstTransformer {
             if (!ai.hasNext()) {
                 throw new RuntimeException();
             }
-            args[i] = ai.next().getString();
+            AstNode n = ai.next();
+            if (n instanceof Name) {
+                args[i] = n.getString();
+            }else{
+                args[i] = Type.NU_ENUM + "Error";
+            }
         }
         JsType prototype = new JsType(name);
         prototype.extend(scope.getTopScope().getPrototype(JsTopScope.OBJECT));
