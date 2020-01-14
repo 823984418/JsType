@@ -160,7 +160,9 @@ public class ReflectJavaClassType implements Type {
         }
         int length = args.length;
         for (Constructor c : getArgs()) {
-            if (c.isVarArgs() || c.getParameterCount() == length) {
+            int needLength = c.getParameters().length;
+            if (c.isVarArgs() && needLength < length || needLength  == length) {
+                r.action(new ReflectJavaObjectType(javaClass));
                 return true;
             }
         }

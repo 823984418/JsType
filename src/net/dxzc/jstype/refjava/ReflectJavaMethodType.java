@@ -85,8 +85,8 @@ public class ReflectJavaMethodType implements Type {
     @Override
     public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
         int length = args.length;
-        if (length == method.getParameterCount()
-                || method.isVarArgs() && length >= method.getParameterCount() - 1) {
+        int needLength = method.getParameters().length;
+        if (method.isVarArgs() && length > needLength || length == needLength) {
             Class c = method.getReturnType();
             if (c != Void.TYPE) {
                 r.action(new ReflectJavaObjectType(c));
