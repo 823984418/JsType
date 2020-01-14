@@ -151,7 +151,7 @@ public class AstTransformer {
     /**
      * 翻译一个脚本的语法树.
      *
-     * @param scope
+     * @param scope 作用域
      * @param node 语法树
      */
     public void transformScript(JsScope scope, AstRoot node) {
