@@ -35,7 +35,7 @@ public class Add extends Rvalue {
      */
     public Add(JsTopScope scope, Rvalue a, Rvalue b) {
         a.forType(t -> {
-            if (scope.getPrototype(JsTopScope.NUMBER).equals(t)) {
+            if (t.isNumberType()) {
                 l = true;
                 if (l && r) {
                     addType(scope.getPrototype(JsTopScope.NUMBER));
@@ -45,7 +45,7 @@ public class Add extends Rvalue {
             }
         });
         b.forType(t -> {
-            if (scope.getPrototype(JsTopScope.NUMBER).equals(t)) {
+            if (t.isNumberType()) {
                 r = true;
                 if (l && r) {
                     addType(scope.getPrototype(JsTopScope.NUMBER));

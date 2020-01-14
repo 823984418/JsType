@@ -66,7 +66,7 @@ public class StandJsTopScope extends JsTopScope {
 
         JsNativeFunction strf = buildClass(STRING, obj, "value");
         Type str = getPrototype(STRING);
-        JsNativeFunction numf = buildClass(NUMBER, obj, "value");
+        JsNativeFunction numf = buildNumberClass(obj, "value");
         Type num = getPrototype(NUMBER);
         JsNativeFunction boof = buildClass(BOOLEAN, obj, "value");
         Type boo = getPrototype(BOOLEAN);
@@ -283,9 +283,19 @@ public class StandJsTopScope extends JsTopScope {
         JsType pro = new JsType(name);
         pro.extend(su);
         map.put(name, pro);
-        JsNativeFunction f = new JsNativeFunction(name, pro);
+        JsNativeFunction f = new JsNativeFunction(name, pro, args);
         f.extend(getPrototype(FUNCTION));
         getScopeType().putMember(name, f);
+        return f;
+    }
+
+    private JsNativeFunction buildNumberClass(JsType su, String... args) {
+        JsType pro = new JsNumberType();
+        pro.extend(su);
+        map.put(NUMBER, pro);
+        JsNativeFunction f = new JsNativeFunction(NUMBER, pro, args);
+        f.extend(getPrototype(FUNCTION));
+        getScopeType().putMember(NUMBER, f);
         return f;
     }
 

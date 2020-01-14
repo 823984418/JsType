@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 823984418@qq.com
+ * Copyright (C) 2020 823984418@qq.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,14 +25,14 @@ import net.dxzc.jstype.Type;
 import net.dxzc.util.Action;
 
 /**
- * 一个java包类型.
+ * java包.
  *
  * @author 823984418@qq.com
  */
-public class ReflectJavaPackageType implements Type {
+public class JavaPackageType implements Type {
 
     /**
-     * 现在最大包层级以避免无限产生包操作.
+     * 限制最大包层级以避免无限产生包操作.
      */
     public static int MAX_LEVEL = 8;
 
@@ -41,24 +41,19 @@ public class ReflectJavaPackageType implements Type {
      *
      * @param loader 类加载器
      */
-    public ReflectJavaPackageType(ClassLoader loader) {
+    public JavaPackageType(JavaLoader loader) {
         name = "";
         this.loader = loader;
         level = 0;
     }
 
-    /**
-     * 构建一个包封装.
-     *
-     * @param loader 类加载器
-     * @param name 包名
-     * @param l 当前层级
-     */
-    public ReflectJavaPackageType(ClassLoader loader, String name, int l) {
+    protected JavaPackageType(JavaLoader loader, String name, int l) {
         this.name = name;
         this.loader = loader;
         level = l;
     }
+
+    protected final JavaLoader loader;
 
     /**
      * 包名.
@@ -70,36 +65,9 @@ public class ReflectJavaPackageType implements Type {
      */
     public final int level;
 
-    /**
-     * 类加载器.
-     */
-    public final ClassLoader loader;
+    private final Map<String, JavaPackageType> childs = new HashMap<>();
 
-    private final Map<String, ReflectJavaClassType> clas = new HashMap<>();
-
-    /**
-     * 获取类.
-     *
-     * @param m 名字
-     * @return 类封装
-     */
-    protected ReflectJavaClassType getClassType(String m) {
-        String n = name.isEmpty() ? m : name + "." + m;
-        ReflectJavaClassType ct = clas.get(n);
-        if (ct != null) {
-            return ct;
-        }
-        try {
-            Class c = loader.loadClass(n);
-            ct = new ReflectJavaClassType(c);
-            clas.put(n, ct);
-            return ct;
-        } catch (ClassNotFoundException ex) {
-            return null;
-        }
-    }
-
-    private final Map<String, ReflectJavaPackageType> pkgs = new HashMap<>();
+    private final Set<String> classes = new HashSet<>();
 
     /**
      * 获取包.
@@ -107,28 +75,30 @@ public class ReflectJavaPackageType implements Type {
      * @param m 名字
      * @return 包封装
      */
-    protected ReflectJavaPackageType getPackageType(String m) {
+    protected JavaPackageType getPackageType(String m) {
         if (level == MAX_LEVEL) {
             return null;
         }
         String n = name.isEmpty() ? m : name + "." + m;
-        ReflectJavaPackageType pt = pkgs.get(m);
+        JavaPackageType pt = childs.get(m);
         if (pt == null) {
-            pt = new ReflectJavaPackageType(loader, n, level + 1);
-            pkgs.put(m, pt);
+            pt = new JavaPackageType(loader, n, level + 1);
+            childs.put(m, pt);
         }
         return pt;
     }
 
     @Override
-    public boolean addMemberAction(String m, Action<Type> action) {
-        ReflectJavaPackageType pt = getPackageType(m);
-        if (pt != null) {
-            action.action(pt);
+    public boolean addMemberAction(String name, Action<Type> action) {
+        JavaPackageType p = getPackageType(name);
+        if (p != null) {
+            action.action(p);
         }
-        ReflectJavaClassType ct = getClassType(m);
-        if (ct != null) {
-            action.action(ct);
+        String n = this.name.isEmpty() ? name : this.name + "." + name;
+        JavaClassType t = loader.getClassType(n);
+        if (t != null) {
+            classes.add(t.javaClass.javaClass.getSimpleName());
+            action.action(t);
         }
         return true;
     }
@@ -140,10 +110,10 @@ public class ReflectJavaPackageType implements Type {
 
     @Override
     public Iterator<String> iterator() {
-        Set<String> set = new HashSet<>();
-        set.addAll(clas.keySet());
-        set.addAll(pkgs.keySet());
-        return set.iterator();
+        Set<String> s = new HashSet<>();
+        s.addAll(childs.keySet());
+        s.addAll(classes);
+        return s.iterator();
     }
 
     @Override
@@ -153,16 +123,17 @@ public class ReflectJavaPackageType implements Type {
 
     @Override
     public Iterator<Type> getMemberType(String name) {
-        Set<Type> set = new HashSet<>();
-        ReflectJavaPackageType pt = getPackageType(name);
-        if (pt != null) {
-            set.add(pt);
+        Set<Type> s = new HashSet<>();
+        JavaPackageType p = getPackageType(name);
+        if (p != null) {
+            s.add(p);
         }
-        ReflectJavaClassType ct = getClassType(name);
-        if (ct != null) {
-            set.add(ct);
+        JavaClassType t = loader.getClassType(name);
+        if (t != null) {
+            classes.add(t.javaClass.javaClass.getSimpleName());
+            s.add(t);
         }
-        return set.iterator();
+        return s.iterator();
     }
 
     @Override
@@ -188,9 +159,9 @@ public class ReflectJavaPackageType implements Type {
         if (obj == null) {
             return false;
         }
-        if (obj instanceof ReflectJavaPackageType) {
-            return name.equals(((ReflectJavaPackageType) obj).name)
-                    && loader.equals(((ReflectJavaPackageType) obj).loader);
+        if (obj instanceof JavaPackageType) {
+            return name.equals(((JavaPackageType) obj).name)
+                    && loader.equals(((JavaPackageType) obj).loader);
         }
         return false;
     }

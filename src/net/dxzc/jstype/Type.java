@@ -115,6 +115,15 @@ public interface Type extends Iterable<String> {
     public Iterator<Type> getMemberType(String name);
 
     /**
+     * 指示此类型是否视为数值.
+     *
+     * @return 是否为数值
+     */
+    public default boolean isNumberType() {
+        return false;
+    }
+
+    /**
      * 获取某个成员的所有类型.如果不存在则返回空的迭代器
      *
      * @param name 成员

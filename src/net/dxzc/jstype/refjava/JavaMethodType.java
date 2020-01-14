@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 823984418@qq.com
+ * Copyright (C) 2020 823984418@qq.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 package net.dxzc.jstype.refjava;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import net.dxzc.jstype.Rvalue;
@@ -25,42 +24,52 @@ import net.dxzc.jstype.Type;
 import net.dxzc.util.Action;
 
 /**
- * 对方法的封装.
+ * 方法.
  *
  * @author 823984418@qq.com
  */
-public class ReflectJavaMethodType implements Type {
+public class JavaMethodType implements Type {
 
     /**
-     * 封装一个方法.
+     * 构造一个方法的类型.
      *
-     * @param m 方法
+     * @param javaLoader 加载器
+     * @param method 方法
      */
-    public ReflectJavaMethodType(Method m) {
-        method = m;
+    protected JavaMethodType(JavaLoader javaLoader, Method method) {
+        this.method = method;
+        isVarArgs = method.isVarArgs();
+        parameterCount = method.getParameterTypes().length;
+        returnType = javaLoader.getObjectType(method.getReturnType());
     }
 
     /**
-     * 封装的方法.
+     * 方法.
      */
     public final Method method;
 
+    /**
+     * 变长参数.
+     */
+    public final boolean isVarArgs;
+
+    /**
+     * 参数个数.
+     */
+    public final int parameterCount;
+
+    /**
+     * 返回类型.
+     */
+    public final JavaObjectType returnType;
+
     @Override
     public boolean addMemberAction(String name, Action<Type> action) {
-        if (THIS.equals(name)) {
-            action.action(new ReflectJavaObjectType(method.getDeclaringClass()));
-            return true;
-        }
         return false;
     }
 
     @Override
     public boolean putMember(String name, Type type) {
-        if (THIS.equals(name)
-                && type instanceof ReflectJavaObjectType
-                && method.getDeclaringClass().isAssignableFrom(((ReflectJavaObjectType) type).javaClass)) {
-            return true;
-        }
         return false;
     }
 
@@ -71,25 +80,20 @@ public class ReflectJavaMethodType implements Type {
 
     @Override
     public Iterator<String> iteratorAll() {
-        return iterator();
+        return Collections.emptyIterator();
     }
 
     @Override
     public Iterator<Type> getMemberType(String name) {
-        if (THIS.equals(name)) {
-            return Arrays.<Type>asList(new ReflectJavaObjectType(method.getDeclaringClass())).iterator();
-        }
         return Collections.emptyIterator();
     }
 
     @Override
     public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
         int length = args.length;
-        int needLength = method.getParameters().length;
-        if (method.isVarArgs() && length > needLength || length == needLength) {
-            Class c = method.getReturnType();
-            if (c != Void.TYPE) {
-                r.action(new ReflectJavaObjectType(c));
+        if (isVarArgs && length > parameterCount || length == parameterCount) {
+            if (returnType != null) {
+                r.action(returnType);
             }
             return true;
         }
@@ -99,26 +103,6 @@ public class ReflectJavaMethodType implements Type {
     @Override
     public String getDoc() {
         return method.toGenericString();
-    }
-
-    private static class AItr implements Iterator<Action<Type>> {
-
-        private AItr(int i) {
-            this.i = i;
-        }
-        private int i;
-
-        @Override
-        public boolean hasNext() {
-            return i > 0;
-        }
-
-        @Override
-        public Action<Type> next() {
-            i--;
-            return null;
-        }
-
     }
 
     @Override
@@ -152,8 +136,8 @@ public class ReflectJavaMethodType implements Type {
         if (obj == null) {
             return false;
         }
-        if (obj instanceof ReflectJavaMethodType) {
-            return method.equals(((ReflectJavaMethodType) obj).method);
+        if (obj instanceof JavaMethodType) {
+            return method.equals(((JavaMethodType) obj).method);
         }
         return false;
     }

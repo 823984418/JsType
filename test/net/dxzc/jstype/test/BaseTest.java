@@ -16,12 +16,13 @@
  */
 package net.dxzc.jstype.test;
 
-import net.dxzc.jstype.refjava.ReflectJavaTopScope;
 import net.dxzc.jstype.JsScope;
 import net.dxzc.jstype.JsScopeFactory;
 import net.dxzc.jstype.JsTopScope;
 import net.dxzc.jstype.JsXmlFunction;
 import net.dxzc.jstype.Rvalue;
+import net.dxzc.jstype.StandJsTopScope;
+import net.dxzc.jstype.refjava.JavaLoader;
 import net.dxzc.jstype.rhino.AstFactory;
 import net.dxzc.jstype.rhino.AstTransformer;
 import org.mozilla.javascript.ast.AstRoot;
@@ -34,9 +35,12 @@ public class BaseTest extends AstTransformer {
 
     public BaseTest(String s, String n, int i) {
         super(new JsScopeFactory() {
+            JavaLoader loader = new JavaLoader();
+
             @Override
             public JsTopScope buildTopScope() {
-                JsTopScope scope = new ReflectJavaTopScope();
+                JsTopScope scope = new StandJsTopScope();
+                loader.init(scope);
                 JsXmlFunction.init(scope);
                 return scope;
             }
