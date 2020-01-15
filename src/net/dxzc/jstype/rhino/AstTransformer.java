@@ -122,13 +122,23 @@ public class AstTransformer {
     }
 
     /**
-     * 但函数结点没有名字时. 返回特定的名字
+     * 当函数结点没有名字时. 返回特定的名字
      *
      * @param node 函数结点
      * @return 名字
      */
     protected String lambdaFunctionName(FunctionNode node) {
         return "$lambda" + node.getAbsolutePosition();
+    }
+
+    /**
+     * 列表表达式类型名称.
+     *
+     * @param node 结点
+     * @return 名称
+     */
+    protected String objectLiteralName(ObjectLiteral node) {
+        return "object@" + node.getAbsolutePosition();
     }
 
     private void onValueByNode(Rvalue value, AstNode node) {
@@ -250,7 +260,10 @@ public class AstTransformer {
                         var = i.getTarget();
                     }
                     if (var instanceof Name) {
-                        exp(ns, var).addType(scope.getTopScope().getPrototype(JsTopScope.STRING));
+                        Get g = ((Get) exp(ns, var));
+                        if (!s.isForEach()) {
+                            g.assign(scope.getTopScope().getPrototype(JsTopScope.STRING));
+                        }
                     } else {
                         warning("Unknow var at for in loop", var);
                     }
@@ -406,8 +419,11 @@ public class AstTransformer {
                 Rvalue t = exp(scope, e.getElement());
                 if (g.getType() == Token.STRING) {
                     String name = ((StringLiteral) g).getValue();
-                    r = new Get(v, name);
-                } else {
+                    if (isName(name)) {
+                        r = new Get(v, name);
+                    }
+                }
+                if (r == null) {
                     r = new ArrayGet(scope.getTopScope(), v, t);
                 }
                 break;
@@ -482,7 +498,7 @@ public class AstTransformer {
             }
             case Token.OBJECTLIT: {
                 ObjectLiteral l = (ObjectLiteral) node;
-                JsType t = new JsType();
+                JsType t = new JsType(objectLiteralName(l));
                 t.extend(scope.getTopScope().getPrototype(JsTopScope.OBJECT));
                 for (ObjectProperty o : l.getElements()) {
                     if (o.getType() == Token.COLON) {
@@ -725,8 +741,8 @@ public class AstTransformer {
     /**
      * 移除文档注释中的*.
      *
-     * @param s 文档注释
-     * @return 加工后的注释
+     * @param s 注释内容
+     * @return 文档内容
      */
     protected String initDoc(String s) {
         StringBuilder sb = new StringBuilder();
@@ -748,6 +764,19 @@ public class AstTransformer {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * 检验名字是否合法.
+     *
+     * @param name 名字
+     * @return 合法性
+     */
+    protected boolean isName(String name) {
+        if (name.isEmpty()) {
+            return false;
+        }
+        return name.charAt(0) != '#';
     }
 
 }

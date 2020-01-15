@@ -40,7 +40,7 @@ public class JsXmlFunction extends JsNativeFunction {
      * 新建一个XML构造器.
      */
     public JsXmlFunction() {
-        super("XML", new JsType(), "xmlString");
+        super("XML", new JsType("XML"), "xmlString");
     }
 
     @Override

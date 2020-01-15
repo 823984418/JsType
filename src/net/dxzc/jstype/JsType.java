@@ -30,14 +30,6 @@ import net.dxzc.util.ActionSet;
 public class JsType extends BaseMapType {
 
     /**
-     * 构建一个类型原型.
-     */
-    public JsType() {
-        this("Unknow@");
-        name += Integer.toHexString(hashCode());
-    }
-
-    /**
      * 以指定名字构建类型原型.
      *
      * @param name 名字

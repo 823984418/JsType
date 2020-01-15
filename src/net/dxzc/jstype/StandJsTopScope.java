@@ -307,7 +307,7 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void arrayMethod(Type pro, String name, String... args) {
-        JsType p = new JsType();
+        JsType p = new JsType("object");
         p.extend(getPrototype(OBJECT));
         Type arr = getPrototype(ARRAY);
         JsArrayMethod m = new JsArrayMethod(name, p, arr, args);
@@ -324,7 +324,7 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void method(Type pro, String name, Type r, String... args) {
-        JsType p = new JsType();
+        JsType p = new JsType("object");
         p.extend(getPrototype(OBJECT));
         JsNativeFunction m = new JsNativeFunction(name, p, args);
         m.extend(getPrototype(FUNCTION));

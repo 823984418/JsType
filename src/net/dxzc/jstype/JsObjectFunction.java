@@ -36,7 +36,7 @@ public class JsObjectFunction extends JsNativeFunction {
 
     @Override
     public boolean newInstance(Action<Type> r, Rvalue i, Rvalue... args) {
-        JsType obj = new JsType();
+        JsType obj = new JsType("object");
         addMemberAction(NEW, t -> obj.extend(t));
         r.action(obj);
         return true;
