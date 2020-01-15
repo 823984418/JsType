@@ -37,7 +37,7 @@ public class ArrayGet extends Lvalue {
      */
     public ArrayGet(JsTopScope scope, Rvalue target, Rvalue field) {
         field.forType(t -> {
-            if (scope.getPrototype(JsTopScope.NUMBER).equals(t)) {
+            if (t.isNumberType()) {
                 target.forType(p -> p.addMemberAction(Type.CONTAIN, this::addType));
                 forAssign(p -> target.forType(n -> n.putMember(Type.CONTAIN, p)));
             }

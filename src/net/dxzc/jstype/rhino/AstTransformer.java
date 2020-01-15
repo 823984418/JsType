@@ -703,7 +703,7 @@ public class AstTransformer {
             AstNode n = ai.next();
             if (n instanceof Name) {
                 args[i] = n.getString();
-            }else{
+            } else {
                 args[i] = Type.NU_ENUM + "Error";
             }
         }
@@ -722,6 +722,12 @@ public class AstTransformer {
         return fun;
     }
 
+    /**
+     * 移除文档注释中的*.
+     *
+     * @param s 文档注释
+     * @return 加工后的注释
+     */
     protected String initDoc(String s) {
         StringBuilder sb = new StringBuilder();
         boolean h = true;

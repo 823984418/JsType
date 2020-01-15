@@ -156,17 +156,19 @@ public class JavaLoader {
         JavaPackageType pkgs = new JavaPackageType(this);
         Type type = scope.getScopeType();
         type.putMember(PACKAGES, pkgs);
-        pkgs.addMemberAction("java", t -> {
-            type.putMember("java", t);
-            t.addMemberAction("lang", x -> {
-            });
+        pkgs.loadPackages(new String[]{
+            "java.lang.System"
         });
+        pkgs.addMemberAction("java", t -> type.putMember("java", t));
         pkgs.addMemberAction("javax", t -> type.putMember("javax", t));
         pkgs.addMemberAction("org", t -> type.putMember("org", t));
         pkgs.addMemberAction("com", t -> type.putMember("com", t));
         pkgs.addMemberAction("edu", t -> type.putMember("edu", t));
         pkgs.addMemberAction("net", t -> type.putMember("net", t));
         if ("Dalvik".equals(System.getProperty("java.vm.name"))) {
+            pkgs.loadPackages(new String[]{
+                "android.content.Context"
+            });
             pkgs.addMemberAction("android", t -> type.putMember("android", t));
         }
     }

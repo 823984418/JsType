@@ -35,7 +35,13 @@ public class Invoke extends Lvalue {
     public Invoke(Rvalue target, Rvalue... args) {
         int l = args.length;
         if (target instanceof Get) {
-            target.forType(t -> t.invoke(this::addType, ((Get) target).target, args));
+            //target.forType(t -> t.invoke(this::addType, ((Get) target).target, args));
+            Get g = (Get) target;
+            g.target.forType(t -> {
+                t.addMemberAction(g.name, c -> {
+                    c.invoke(this::addType, new Rvalue(t), args);
+                });
+            });
         } else {
             target.forType(t -> t.invoke(this::addType, null, args));
         }

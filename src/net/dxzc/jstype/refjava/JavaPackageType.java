@@ -70,6 +70,23 @@ public class JavaPackageType implements Type {
     private final Set<String> classes = new HashSet<>();
 
     /**
+     * 在顶层包上加载包路径. 只能调用于顶层包,即使传入的是类路径,也当作包对待而取得相似的行为
+     *
+     * @param ns 包列表
+     */
+    public void loadPackages(String... ns) {
+        if (!name.isEmpty()) {
+            throw new RuntimeException();
+        }
+        for (String n : ns) {
+            JavaPackageType p = this;
+            for (String f : n.split("\\.")) {
+                p = p.getPackageType(f);
+            }
+        }
+    }
+
+    /**
      * 获取包.
      *
      * @param m 名字
