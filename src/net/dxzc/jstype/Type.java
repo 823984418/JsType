@@ -83,7 +83,7 @@ public interface Type extends Iterable<String> {
     public boolean addMemberAction(String name, Action<Type> action);
 
     /**
-     * 尝试对此类型进行一次成员赋值.实现也许会为此新建一个成员,也许会拒绝此操作
+     * 尝试对此类型进行一次成员赋值.实现也许会为此新建一个成员,也许会拒绝此操作 为空表示初始化
      *
      * @param name 成员
      * @param type 新增的类型

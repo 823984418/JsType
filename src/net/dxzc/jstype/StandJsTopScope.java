@@ -46,12 +46,21 @@ public class StandJsTopScope extends JsTopScope {
         JsType fun = new JsType("Function");
         map.put(FUNCTION, fun);
         JsNativeFunction funf = new JsNativeFunction("Function", fun);
+        funf.putMember(Type.RETURN, fun);
         funf.extend(fun);
         type.putMember(FUNCTION, funf);
 
         JsType obj = new JsType("Object");
+        JsType eobj = new JsType("Object");
+        eobj.extend(obj);
         map.put(OBJECT, obj);
-        JsObjectFunction objf = new JsObjectFunction(obj);
+        JsActionFunction.TypeAction obja = (f, invoked, r, i, as) -> {
+            JsType o = new JsType("object");
+            o.extend(obj);
+            r.action(o);
+            return true;
+        };
+        JsActionFunction objf = new JsActionFunction(OBJECT, obj, obja, obja, "object");
         objf.extend(fun);
         type.putMember(OBJECT, objf);
 
@@ -60,7 +69,13 @@ public class StandJsTopScope extends JsTopScope {
         JsType arr = new JsType("Array");
         arr.extend(obj);
         map.put(ARRAY, arr);
-        JsArrayFunction arrf = new JsArrayFunction(arr);
+        JsActionFunction.TypeAction arra = (f, invoked, r, i, as) -> {
+            JsArrayType array = new JsArrayType();
+            f.addMemberAction(Type.NEW, t -> array.extend(t));
+            r.action(array);
+            return true;
+        };
+        JsActionFunction arrf = new JsActionFunction(ARRAY, arr, arra, arra, "...element");
         arrf.extend(fun);
         type.putMember(ARRAY, arrf);
 
@@ -81,16 +96,16 @@ public class StandJsTopScope extends JsTopScope {
         map.put(MATH, math);
         type.putMember(MATH, math);
 
-        method(fun, "apply", obj, "thisArg", "argArrayOpt");
-        method(fun, "call", obj, "thisArg", "...args");
+        method(fun, "apply", eobj, "thisArg", "argArrayOpt");
+        method(fun, "call", eobj, "thisArg", "...args");
         method(fun, "toSource", str);
         method(fun, "toString", str);
         method(fun, "valueOf", str);
 
-        method(arr, "pop", obj);
+        containMethod(arr, "pop");
         method(arr, "push", num, "element");
         method(arr, "reverse", null);
-        method(arr, "shift", obj);
+        containMethod(arr, "shift");
         method(arr, "sort", null, "compareFunction");
         method(arr, "splice", null, "index", "howMany", "...element");
         method(arr, "unshift", num, "...element");
@@ -98,13 +113,13 @@ public class StandJsTopScope extends JsTopScope {
         method(arr, "indexOf", num, "searchElement");
         method(arr, "join", str, "separatorOpt");
         method(arr, "lastIndexOf", num, "searchElement");
-        arrayMethod(arr, "slice", "begin", "endOpt");
+        arrayCloneMethod(arr, "slice", "begin", "endOpt");
         method(arr, "toString", str);
         method(arr, "valueOf", str);
-        arrayMethod(arr, "filter", "callback");
+        arrayCloneMethod(arr, "filter", "callback");
         method(arr, "forEach", null, "callback");
         method(arr, "every", boo, "callback");
-        arrayMethod(arr, "map", "callback");
+        arrayCloneMethod(arr, "map", "callback");
         method(arr, "some", boo, "callback");
 
         math.putMember("E", num);
@@ -284,6 +299,7 @@ public class StandJsTopScope extends JsTopScope {
         pro.extend(su);
         map.put(name, pro);
         JsNativeFunction f = new JsNativeFunction(name, pro, args);
+        f.putMember(Type.RETURN, pro);
         f.extend(getPrototype(FUNCTION));
         getScopeType().putMember(name, f);
         return f;
@@ -294,23 +310,102 @@ public class StandJsTopScope extends JsTopScope {
         pro.extend(su);
         map.put(NUMBER, pro);
         JsNativeFunction f = new JsNativeFunction(NUMBER, pro, args);
+        f.putMember(Type.RETURN, pro);
         f.extend(getPrototype(FUNCTION));
         getScopeType().putMember(NUMBER, f);
         return f;
     }
 
     /**
-     * 构建一个返回数组类型的方法.
+     * 构建一个返回克隆类型的方法.
      *
      * @param pro 方法拥有者
      * @param name 方法名
      * @param args 形参表
      */
-    public void arrayMethod(Type pro, String name, String... args) {
+    public void cloneMethod(Type pro, String name, String... args) {
+        JsType p = new JsType("object");
+        Type obj = getPrototype(OBJECT);
+        p.extend(obj);
+        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+            JsType o = new JsType("object");
+            o.extend(obj);
+            if (i != null) {
+                i.forType(t -> o.extend(t));
+            }
+            r.action(o);
+            return true;
+        }, null, args);
+        m.putMember(Type.RETURN, obj);
+        m.extend(getPrototype(FUNCTION));
+        pro.putMember(name, m);
+    }
+
+    /**
+     * 构建一个返回数组克隆类型的方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param args 形参表
+     */
+    public void arrayCloneMethod(Type pro, String name, String... args) {
         JsType p = new JsType("object");
         p.extend(getPrototype(OBJECT));
         Type arr = getPrototype(ARRAY);
-        JsArrayMethod m = new JsArrayMethod(name, p, arr, args);
+        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+            JsArrayType array = new JsArrayType();
+            array.extend(arr);
+            if (i != null) {
+                i.forType(t -> array.extend(t));
+            }
+            r.action(array);
+            return true;
+        }, null, args);
+        m.putMember(Type.RETURN, arr);
+        m.extend(getPrototype(FUNCTION));
+        pro.putMember(name, m);
+    }
+
+    /**
+     * 构建一个返回值为this容纳类型的方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param args 形参表
+     */
+    public void containMethod(Type pro, String name, String... args) {
+        JsType p = new JsType("object");
+        p.extend(getPrototype(OBJECT));
+        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+            if (this == null) {
+                return false;
+            }
+            i.forType(t -> t.addMemberAction(Type.CONTAIN, r::action));
+            return true;
+        }, null, args);
+        m.putMember(Type.RETURN, getPrototype(OBJECT));
+        m.extend(getPrototype(FUNCTION));
+        pro.putMember(name, m);
+    }
+
+    /**
+     * 构建一个返回值为this的方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param args 形参表
+     */
+    public void thisMethod(Type pro, String name, String... args) {
+        JsType p = new JsType("object");
+        p.extend(getPrototype(OBJECT));
+        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+            if (this == null) {
+                return false;
+            }
+            i.forType(r::action);
+            return true;
+        }, null, args);
+        m.putMember(Type.RETURN, getPrototype(OBJECT));
         m.extend(getPrototype(FUNCTION));
         pro.putMember(name, m);
     }

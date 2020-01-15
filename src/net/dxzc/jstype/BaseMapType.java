@@ -86,7 +86,9 @@ public class BaseMapType implements Type {
         if (m == null) {
             return false;
         }
-        m.add(type);
+        if (type != null) {
+            m.add(type);
+        }
         return true;
     }
 

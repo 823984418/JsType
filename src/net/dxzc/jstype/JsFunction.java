@@ -92,7 +92,9 @@ public class JsFunction extends JsType {
     @Override
     public boolean putMember(String name, Type type) {
         if (PROTOTYPE.equals(name)) {
-            prototype.extend(type);
+            if (type != null) {
+                prototype.extend(type);
+            }
             return true;
         }
         return super.putMember(name, type);

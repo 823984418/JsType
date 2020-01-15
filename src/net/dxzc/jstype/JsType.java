@@ -39,6 +39,7 @@ public class JsType extends BaseMapType {
         childs.addAction(c -> {
             for (Map.Entry<String, ActionSet<Type>> e : members.entrySet()) {
                 String f = e.getKey();
+                c.putMember(f, null);
                 e.getValue().addAction(n -> c.putMember(f, n));
             }
         });
@@ -65,11 +66,11 @@ public class JsType extends BaseMapType {
         if (r != null) {
             return r;
         }
-        r = super.getMember(name);
-        if (r != null) {
-            for (Type t : childs) {
-                r.addAction(n -> t.putMember(name, n));
-            }
+        r = new ActionSet();
+        members.put(name, r);
+        for (Type t : childs) {
+            t.putMember(name, null);
+            r.addAction(n -> t.putMember(name, n));
         }
         return r;
     }

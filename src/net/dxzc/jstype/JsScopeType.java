@@ -41,7 +41,7 @@ public class JsScopeType extends BaseMapType {
      * @param name 变量名
      */
     public void let(String name) {
-        getMember(name);
+        putMember(name, null);
     }
 
     /**
