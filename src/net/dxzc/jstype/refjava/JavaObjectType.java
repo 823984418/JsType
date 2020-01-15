@@ -49,9 +49,18 @@ public class JavaObjectType implements Type {
      */
     protected final Map<String, Set<Type>> memberMap = new HashMap<>();
 
+    /**
+     * 包含类型.
+     */
+    protected JavaObjectType contain;
+
     @Override
     public boolean addMemberAction(String name, Action<Type> action) {
         javaClass.load();
+        if (Type.CONTAIN.equals(name) && contain != null) {
+            action.action(contain);
+            return true;
+        }
         Set<Type> set = memberMap.get(name);
         if (set == null) {
             return false;

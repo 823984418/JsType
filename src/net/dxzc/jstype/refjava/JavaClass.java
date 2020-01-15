@@ -91,8 +91,8 @@ public class JavaClass {
             return;
         }
         loaded = true;
-        if(javaClass.isArray()){
-            addMember(Type.CONTAIN, false, javaLoader.getObjectType(javaClass.getComponentType()));
+        if (javaClass.isArray()) {
+            objectType.contain = javaLoader.getObjectType(javaClass.getComponentType());
         }
         boolean isInterface = javaClass.isInterface();
         for (Method m : javaClass.getMethods()) {

@@ -327,9 +327,15 @@ public class AstTransformer {
                 transform(scope, c.getBody());
                 break;
             }
-            case Token.RETURN:
-                set(scope.getScope(), Type.RETURN, exp(scope, ((ReturnStatement) node).getReturnValue()));
+            case Token.RETURN: {
+                AstNode n = ((ReturnStatement) node).getReturnValue();
+                if (n != null) {
+                    set(scope.getScope(), Type.RETURN, exp(scope, n));
+                } else {
+                    new Get(scope.getScope(), Type.RETURN);
+                }
                 break;
+            }
             case Token.VAR:
             case Token.CONST:
             case Token.LET: {
@@ -430,6 +436,10 @@ public class AstTransformer {
             }
             case Token.NULL:
                 r = new Rvalue();
+                break;
+            case Token.TRUE:
+            case Token.FALSE:
+                r = new Rvalue(scope.getTopScope().getPrototype(JsTopScope.BOOLEAN));
                 break;
             case Token.COMMA: {
                 InfixExpression e = (InfixExpression) node;

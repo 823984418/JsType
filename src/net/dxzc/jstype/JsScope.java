@@ -16,7 +16,9 @@
  */
 package net.dxzc.jstype;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * 一个环境作用域. 只能有作用域类型作为唯一一个类型
@@ -46,17 +48,17 @@ public class JsScope extends Rvalue {
     /**
      * 归属的父域.
      */
-    protected final JsScope superScope;
+    public final JsScope superScope;
 
     /**
      * 归属的顶层域.
      */
-    protected final JsTopScope topScope;
+    public final JsTopScope topScope;
 
     /**
      * 是否为顶层域或者函数域(var的对象).
      */
-    protected final boolean isScope;
+    public final boolean isScope;
 
     @Override
     public boolean addType(Type type) {
@@ -130,6 +132,19 @@ public class JsScope extends Rvalue {
      */
     public void setTypeName(String name) {
         getScopeType().name = name;
+    }
+
+    /**
+     * 列出作用域链上的变量.
+     *
+     * @return 变量名集合
+     */
+    public Set<String> listVariable() {
+        Set<String> set = new HashSet<>();
+        for (JsScope s = this; s != null; s = s.superScope) {
+            set.addAll(s.fields());
+        }
+        return set;
     }
 
 }

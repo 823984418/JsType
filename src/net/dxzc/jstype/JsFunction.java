@@ -99,15 +99,15 @@ public class JsFunction extends JsType {
     }
 
     private void argInput(Rvalue... as) {
-        int l = args.length;
-        if (l < as.length) {
+        int l = as.length;
+        if (l > args.length) {
             if (varArgs) {
-                Action<Type> more = args[l - 1];
-                for (int i = l, e = as.length; i < e; i++) {
+                Action<Type> more = args[args.length - 1];
+                for (int i = args.length; i < l; i++) {
                     as[i].forType(more);
                 }
             }
-            l = as.length;
+            l = args.length;
         }
         for (int i = 0; i < l; i++) {
             as[i].forType(args[i]);

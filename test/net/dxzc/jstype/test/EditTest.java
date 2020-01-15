@@ -45,13 +45,16 @@ public class EditTest extends JFrame {
         b.addActionListener(e -> {
             BaseTest t = new BaseTest(edit.getText(), "script", edit.getSelectionStart());
             list.removeAllItems();
-            Rvalue v = t.value;
-            if (v == null) {
-                v = t.scope;
-            }
-            setTitle(v.toString());
-            for (String i : v.fields()) {
-                list.addItem(i);
+            if (t.value != null) {
+                for (String i : t.value.fields()) {
+                    list.addItem(i);
+                }
+                setTitle(t.value.toString());
+            } else {
+                for (String i : t.scope.listVariable()) {
+                    list.addItem(i);
+                }
+                setTitle(t.scope.toString());
             }
         });
         add(b, BorderLayout.SOUTH);
