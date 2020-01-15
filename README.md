@@ -7,3 +7,6 @@ java实现的js静态类型分析
 
 [包](/bin/jstype.jar)
 [文档](https://823984418.github.io/JsType/)
+
+因为同步更新文档影响阅读
+只有大版本才会更新文档
