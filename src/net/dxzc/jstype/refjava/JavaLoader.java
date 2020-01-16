@@ -18,6 +18,7 @@ package net.dxzc.jstype.refjava;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.dxzc.classfind.ClassFinder;
 import net.dxzc.jstype.JsTopScope;
 import net.dxzc.jstype.Type;
 
@@ -153,12 +154,17 @@ public class JavaLoader {
      * @param scope 域
      */
     public void init(JsTopScope scope) {
+
         JavaPackageType pkgs = new JavaPackageType(this);
+
+        for (Class<?> c : ClassFinder.BASE_FINDER) {
+            if (!c.isMemberClass() && !c.isLocalClass() && !c.isAnonymousClass()) {
+                pkgs.loadPackages(c.getName());
+            }
+        }
+
         Type type = scope.getScopeType();
         type.putMember(PACKAGES, pkgs);
-        pkgs.loadPackages(new String[]{
-            "java.lang.System"
-        });
         pkgs.addMemberAction("java", t -> type.putMember("java", t));
         pkgs.addMemberAction("javax", t -> type.putMember("javax", t));
         pkgs.addMemberAction("org", t -> type.putMember("org", t));
@@ -166,9 +172,6 @@ public class JavaLoader {
         pkgs.addMemberAction("edu", t -> type.putMember("edu", t));
         pkgs.addMemberAction("net", t -> type.putMember("net", t));
         if ("Dalvik".equals(System.getProperty("java.vm.name"))) {
-            pkgs.loadPackages(new String[]{
-                "android.content.Context"
-            });
             pkgs.addMemberAction("android", t -> type.putMember("android", t));
         }
     }
