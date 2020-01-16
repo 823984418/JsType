@@ -16,6 +16,7 @@
  */
 package net.dxzc.jstype;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -127,9 +128,13 @@ public class StandJsTopScope extends JsTopScope {
             if (i == null) {
                 return false;
             }
-            i.forType(t -> {
-                t.invoke(r, i, args);
-            });
+            if (args.length != 0) {
+                Rvalue ti = args[0];
+                Rvalue[] a = Arrays.copyOfRange(args, 1, args.length);
+                i.forType(t -> t.invoke(r, ti, a));
+            } else {
+                i.forType(t -> t.invoke(r, null));
+            }
             return true;
         }, "thisArg", "...args");
         method(fun, "toSource", str);
