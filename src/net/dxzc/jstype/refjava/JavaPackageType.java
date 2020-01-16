@@ -168,7 +168,7 @@ public class JavaPackageType implements Type {
 
     @Override
     public int hashCode() {
-        return name.hashCode() ^ loader.hashCode();
+        return name.hashCode();
     }
 
     @Override
@@ -177,8 +177,7 @@ public class JavaPackageType implements Type {
             return false;
         }
         if (obj instanceof JavaPackageType) {
-            return name.equals(((JavaPackageType) obj).name)
-                    && loader.equals(((JavaPackageType) obj).loader);
+            return name.equals(((JavaPackageType) obj).name);
         }
         return false;
     }

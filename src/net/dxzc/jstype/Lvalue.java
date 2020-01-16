@@ -37,9 +37,15 @@ public class Lvalue extends Rvalue {
      * 所有赋予的值.
      */
     private final ActionSet<Type> assigns = new ActionSet<>();
-    
-    public boolean assign(Type type){
-        if(type == null){
+
+    /**
+     * 向其赋值.
+     *
+     * @param type 值
+     * @return 是否有改变
+     */
+    public boolean assign(Type type) {
+        if (type == null) {
             return false;
         }
         return assigns.add(type);

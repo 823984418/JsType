@@ -16,6 +16,7 @@
  */
 package net.dxzc.jstype.refjava;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -112,6 +113,9 @@ public class JavaObjectType implements Type {
     @Override
     public Iterator<Type> getMemberType(String name) {
         javaClass.load();
+        if (Type.CONTAIN.equals(name) && contain != null) {
+            return Arrays.<Type>asList(contain).iterator();
+        }
         Set<Type> set = memberMap.get(name);
         if (set == null) {
             return null;
@@ -154,7 +158,7 @@ public class JavaObjectType implements Type {
             return false;
         }
         if (obj instanceof JavaObjectType) {
-            return javaClass.javaClass.equals(((JavaClassType) obj).javaClass.javaClass);
+            return javaClass.javaClass.equals(((JavaObjectType) obj).javaClass.javaClass);
         }
         return false;
     }
