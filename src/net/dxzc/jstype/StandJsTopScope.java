@@ -63,6 +63,7 @@ public class StandJsTopScope extends JsTopScope {
             return true;
         };
         JsActionFunction objf = new JsActionFunction(OBJECT, obj, obja, obja, "object");
+        objf.putMember(Type.RETURN, obj);
         objf.extend(fun);
         type.putMember(OBJECT, objf);
 
@@ -108,6 +109,91 @@ public class StandJsTopScope extends JsTopScope {
         JsType math = new JsType("Math");
         map.put(MATH, math);
         type.putMember(MATH, math);
+
+        JsType json = new JsType("JSON");
+        map.put(JSON, json);
+        type.putMember(JSON, json);
+
+        actionMethod(objf, "assign", obj, (f, invoked, r, i, as) -> {
+            if (as.length == 0) {
+                return false;
+            }
+            as[0].forType(r);
+            if (as.length > 1) {
+                as[0].forType(t -> {
+                    if (t instanceof JsType) {
+                        JsType tt = (JsType) t;
+                        for (int j = 1, l = as.length; j < l; j++) {
+                            as[j].forType(tt::extend);
+                        }
+                    }
+                });
+            }
+            return true;
+        }, "target", "...source");
+        actionMethod(objf, "create", obj, (f, invoked, r, i, as) -> {
+            JsType o = new JsType("createObject");
+            o.extend(obj);
+            if (as.length != 0) {
+                as[0].forType(o::extend);
+            }
+            r.action(o);
+            return true;
+        }, "proto", "propertiesObject");
+        firstMethod(objf, "defineProperty", obj, "obj", "prop", "descriptor");
+        firstMethod(objf, "defineProperties", obj, "obj", "prop");
+        actionMethod(objf, "entries", arr, (f, invoked, r, i, as) -> {
+            if (as.length != 0) {
+                JsArrayType at = new JsArrayType();
+                at.extend(arr);
+                JsArrayType ac = new JsArrayType();
+                ac.extend(arr);
+                JsType co = new JsType("entriesObject");
+                co.extend(obj);
+                at.putMember(Type.CONTAIN, ac);
+                ac.putMember(Type.CONTAIN, str);
+                ac.putMember(Type.CONTAIN, co);
+                r.action(at);
+                return true;
+            }
+            return false;
+        }, "obj");
+        firstMethod(objf, "freeze", obj, "obj");
+        extendMethod(objf, "getOwnPropertyDescriptor", obj, "obj", "prop");
+        JsArrayType strArr = new JsArrayType();
+        strArr.extend(arr);
+        strArr.putMember(Type.CONTAIN, str);
+        extendArrayMethod(objf, "getOwnPropertyNames", strArr, "obj");
+        method(objf, "is", boo, "value1", "value2");
+        method(objf, "isExtensible", boo, "obj");
+        method(objf, "isFrozen", boo, "obj");
+        method(objf, "isSealed", boo, "obj");
+        extendArrayMethod(objf, "keys", strArr, "obj");
+        firstMethod(objf, "preventExtensions", obj, "obj");
+        firstMethod(objf, "seal", obj, "obj");
+        actionMethod(objf, "", obj, (f, invoked, r, i, as) -> {
+            if (as.length == 0) {
+                return false;
+            }
+            as[0].forType(r);
+            if (as.length > 1) {
+                as[0].forType(t -> {
+                    if (t instanceof JsType) {
+                        JsType tt = (JsType) t;
+                        as[1].forType(tt::extend);
+                    }
+                });
+            }
+            return true;
+        }, "obj", "prototype");
+        JsArrayType objArr = new JsArrayType();
+        objArr.extend(arr);
+        objArr.putMember(Type.CONTAIN, str);
+        extendArrayMethod(objf, "values", objArr, "obj");
+        obj.putMember("constructor", fun);
+        method(obj, "hasOwnProperty", boo, "prop");
+        method(obj, "isPrototypeOf", boo, "object");
+        method(obj, "propertyIsEnumerable", boo, "prop");
 
         actionMethod(fun, "apply", obj, (f, invoked, r, i, args) -> {
             if (i == null) {
@@ -187,6 +273,9 @@ public class StandJsTopScope extends JsTopScope {
         method(math, "sin", num, "x");
         method(math, "sqrt", num, "x");
         method(math, "tan", num, "x");
+
+        extendMethod(json, "parse", obj, "text", "reviver");
+        method(json, "stringify", str, "value", "replacer", "space");
 
         datef.putMember("now", date);
         method(date, "getDate", num);
@@ -356,7 +445,25 @@ public class StandJsTopScope extends JsTopScope {
     }
 
     /**
-     * 构建一个返回克隆类型的方法.
+     * 返回值是第一个参数的方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param re 显示的返回类型
+     * @param args 形参表
+     */
+    public void firstMethod(Type pro, String name, Type re, String... args) {
+        actionMethod(pro, name, re, (fun, invoked, r, i, as) -> {
+            if (as.length != 0) {
+                as[0].forType(r);
+                return true;
+            }
+            return false;
+        }, args);
+    }
+
+    /**
+     * 构建一个返回克隆继承this类型的方法.
      *
      * @param pro 方法拥有者
      * @param name 方法名
@@ -368,7 +475,7 @@ public class StandJsTopScope extends JsTopScope {
             JsType o = new JsType("object");
             o.extend(obj);
             if (i != null) {
-                i.forType(t -> o.extend(t));
+                i.forType(o::extend);
             }
             r.action(o);
             return true;
@@ -388,7 +495,7 @@ public class StandJsTopScope extends JsTopScope {
             JsArrayType array = new JsArrayType();
             array.extend(arr);
             if (i != null) {
-                i.forType(t -> array.extend(t));
+                i.forType(array::extend);
             }
             r.action(array);
             return true;
@@ -396,7 +503,7 @@ public class StandJsTopScope extends JsTopScope {
     }
 
     /**
-     * 构建一个返回值为this容纳类型的方法.
+     * 构建一个返回值为克隆继承this数组容纳类型的方法.
      *
      * @param pro 方法拥有者
      * @param name 方法名
@@ -437,20 +544,34 @@ public class StandJsTopScope extends JsTopScope {
      * @param r 返回类型
      * @param args 形参表
      */
-    public void extendsMethod(Type pro, String name, Type r, String... args) {
+    public void extendMethod(Type pro, String name, Type r, String... args) {
         actionMethod(pro, name, r, (fun, invoked, ra, i, as) -> {
             JsType o = new JsType("object");
             o.extend(r);
-            if (i != null) {
-                i.forType(t -> o.extend(t));
-            }
             ra.action(o);
             return true;
         }, args);
     }
 
     /**
-     * 构建一个特点行为的方法.
+     * 构建一个返回值继承某数组类型的方法. 每个返回值是独立的原型
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param r 返回类型
+     * @param args 形参表
+     */
+    public void extendArrayMethod(Type pro, String name, Type arrObj, String... args) {
+        actionMethod(pro, name, arrObj, (fun, invoked, r, i, as) -> {
+            JsArrayType array = new JsArrayType();
+            array.extend(arrObj);
+            r.action(array);
+            return true;
+        }, args);
+    }
+
+    /**
+     * 构建一个特定行为的方法.
      *
      * @param pro 方法拥有者
      * @param name 方法名

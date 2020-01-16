@@ -44,6 +44,8 @@ public abstract class JsTopScope extends JsScope {
     public static final String ERROR = "Error";
 
     public static final String XML = "XML";
+    
+    public static final String JSON = "JSON";
 
     /**
      * 构造一个顶层域.

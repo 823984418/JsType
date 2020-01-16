@@ -19,6 +19,7 @@ package net.dxzc.jstype;
 import net.dxzc.util.Action;
 
 /**
+ * 将动作使用接口代理. 注意,代理动作至多创造有限个[O(1)]新的原型,否则可能会导致无穷递归
  *
  * @author 823984418@qq.com
  */
