@@ -121,12 +121,26 @@ public class JavaObjectType implements Type {
 
     @Override
     public String getDoc() {
-        return javaClass.javaClass.getTypeName();
+        Class<?> cl = javaClass.javaClass;
+        if (cl.isArray()) {
+            int dimensions = 0;
+            while (cl.isArray()) {
+                dimensions++;
+                cl = cl.getComponentType();
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append(cl.getName());
+            for (int i = 0; i < dimensions; i++) {
+                sb.append("[]");
+            }
+            return sb.toString();
+        }
+        return cl.getName();
     }
 
     @Override
     public String toString() {
-        return javaClass.javaClass.getTypeName();
+        return getDoc();
     }
 
     @Override

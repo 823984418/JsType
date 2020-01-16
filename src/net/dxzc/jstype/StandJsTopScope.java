@@ -51,12 +51,13 @@ public class StandJsTopScope extends JsTopScope {
         type.putMember(FUNCTION, funf);
 
         JsType obj = new JsType("Object");
-        JsType eobj = new JsType("Object");
-        eobj.extend(obj);
         map.put(OBJECT, obj);
         JsActionFunction.TypeAction obja = (f, invoked, r, i, as) -> {
             JsType o = new JsType("object");
             o.extend(obj);
+            if (as.length == 1) {
+                as[0].forType(o::extend);
+            }
             r.action(o);
             return true;
         };
@@ -71,7 +72,18 @@ public class StandJsTopScope extends JsTopScope {
         map.put(ARRAY, arr);
         JsActionFunction.TypeAction arra = (f, invoked, r, i, as) -> {
             JsArrayType array = new JsArrayType();
-            f.addMemberAction(Type.NEW, t -> array.extend(t));
+            array.extend(arr);
+            if (as.length == 1) {
+                as[0].forType(t -> {
+                    if (!t.isNumberType()) {
+                        array.putMember(Type.CONTAIN, t);
+                    }
+                });
+            } else {
+                for (Rvalue v : as) {
+                    v.forType(t -> array.putMember(Type.CONTAIN, t));
+                }
+            }
             r.action(array);
             return true;
         };
@@ -96,8 +108,30 @@ public class StandJsTopScope extends JsTopScope {
         map.put(MATH, math);
         type.putMember(MATH, math);
 
-        method(fun, "apply", eobj, "thisArg", "argArrayOpt");
-        method(fun, "call", eobj, "thisArg", "...args");
+        actionMethod(fun, "apply", obj, (f, invoked, r, i, args) -> {
+            if (i == null) {
+                return false;
+            }
+            JsType o = new JsType("applyReturn");
+            o.extend(obj);
+            i.forType(t -> {
+                t.addMemberAction(Type.RETURN, o::extend);
+                if (args.length != 0) {
+                    args[0].forType(n -> t.putMember(Type.THIS, n));
+                }
+            });
+            r.action(o);
+            return true;
+        }, "thisArg", "argArrayOpt");
+        actionMethod(fun, "call", obj, (f, invoked, r, i, args) -> {
+            if (i == null) {
+                return false;
+            }
+            i.forType(t -> {
+                t.invoke(r, i, args);
+            });
+            return true;
+        }, "thisArg", "...args");
         method(fun, "toSource", str);
         method(fun, "toString", str);
         method(fun, "valueOf", str);
@@ -324,10 +358,8 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void cloneMethod(Type pro, String name, String... args) {
-        JsType p = new JsType("object");
         Type obj = getPrototype(OBJECT);
-        p.extend(obj);
-        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+        actionMethod(pro, name, obj, (fun, invoked, r, i, as) -> {
             JsType o = new JsType("object");
             o.extend(obj);
             if (i != null) {
@@ -335,10 +367,7 @@ public class StandJsTopScope extends JsTopScope {
             }
             r.action(o);
             return true;
-        }, null, args);
-        m.putMember(Type.RETURN, obj);
-        m.extend(getPrototype(FUNCTION));
-        pro.putMember(name, m);
+        }, args);
     }
 
     /**
@@ -349,10 +378,8 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void arrayCloneMethod(Type pro, String name, String... args) {
-        JsType p = new JsType("object");
-        p.extend(getPrototype(OBJECT));
         Type arr = getPrototype(ARRAY);
-        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+        actionMethod(pro, name, arr, (fun, invoked, r, i, as) -> {
             JsArrayType array = new JsArrayType();
             array.extend(arr);
             if (i != null) {
@@ -360,10 +387,7 @@ public class StandJsTopScope extends JsTopScope {
             }
             r.action(array);
             return true;
-        }, null, args);
-        m.putMember(Type.RETURN, arr);
-        m.extend(getPrototype(FUNCTION));
-        pro.putMember(name, m);
+        }, args);
     }
 
     /**
@@ -374,18 +398,13 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void containMethod(Type pro, String name, String... args) {
-        JsType p = new JsType("object");
-        p.extend(getPrototype(OBJECT));
-        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+        actionMethod(pro, name, getPrototype(OBJECT), (fun, invoked, r, i, as) -> {
             if (this == null) {
                 return false;
             }
             i.forType(t -> t.addMemberAction(Type.CONTAIN, r::action));
             return true;
-        }, null, args);
-        m.putMember(Type.RETURN, getPrototype(OBJECT));
-        m.extend(getPrototype(FUNCTION));
-        pro.putMember(name, m);
+        }, args);
     }
 
     /**
@@ -396,17 +415,53 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void thisMethod(Type pro, String name, String... args) {
-        JsType p = new JsType("object");
-        p.extend(getPrototype(OBJECT));
-        JsActionFunction m = new JsActionFunction(name, p, (fun, invoked, r, i, as) -> {
+        actionMethod(pro, name, getPrototype(OBJECT), (fun, invoked, r, i, as) -> {
             if (this == null) {
                 return false;
             }
             i.forType(r::action);
             return true;
-        }, null, args);
-        m.putMember(Type.RETURN, getPrototype(OBJECT));
+        }, args);
+    }
+
+    /**
+     * 构建一个返回值继承某类型的方法. 每个返回值是独立的原型
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param r 返回类型
+     * @param args 形参表
+     */
+    public void extendsMethod(Type pro, String name, Type r, String... args) {
+        actionMethod(pro, name, r, (fun, invoked, ra, i, as) -> {
+            JsType o = new JsType("object");
+            o.extend(r);
+            if (i != null) {
+                i.forType(t -> o.extend(t));
+            }
+            ra.action(o);
+            return true;
+        }, args);
+    }
+
+    /**
+     * 构建一个特点行为的方法.
+     *
+     * @param pro 方法拥有者
+     * @param name 方法名
+     * @param r 返回类型
+     * @param action 行为
+     * @param args 形参表
+     */
+    public void actionMethod(Type pro, String name, Type r, JsActionFunction.TypeAction action, String... args) {
+        if (r == null) {
+            throw new RuntimeException();
+        }
+        JsType p = new JsType("object");
+        p.extend(getPrototype(OBJECT));
+        JsActionFunction m = new JsActionFunction(name, p, action, null, args);
         m.extend(getPrototype(FUNCTION));
+        m.putMember(Type.RETURN, r);
         pro.putMember(name, m);
     }
 
