@@ -14,14 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.dxzc.jstype.test;
+package net.dxzc.jstype;
 
-import net.dxzc.jstype.JsScope;
-import net.dxzc.jstype.JsScopeFactory;
-import net.dxzc.jstype.JsTopScope;
-import net.dxzc.jstype.JsXmlFunction;
-import net.dxzc.jstype.Rvalue;
-import net.dxzc.jstype.StandJsTopScope;
 import net.dxzc.jstype.refjava.JavaLoader;
 import net.dxzc.jstype.rhino.AstFactory;
 import net.dxzc.jstype.rhino.AstTransformer;

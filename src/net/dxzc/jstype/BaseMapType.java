@@ -54,7 +54,7 @@ public class BaseMapType implements Type {
     protected ActionSet<Type> getMember(String name) {
         ActionSet<Type> m = members.get(name);
         if (m == null) {
-            m = new ActionSet();
+            m = new ActionSet<>();
             members.put(name, m);
         }
         return m;

@@ -16,8 +16,6 @@
  */
 package net.dxzc.jstype;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import net.dxzc.jstype.exp.Get;
 import net.dxzc.util.Action;
 
@@ -49,14 +47,16 @@ public class JsFunction extends JsType {
         } else {
             varArgs = false;
         }
-        args = new Action[as.length];
         if (runtime != null) {
+            args = new Action[as.length];
             runtime.getScopeType().addMemberAction(RETURN, t -> putMember(RETURN, t));
             addMemberAction(THIS, t -> runtime.getScopeType().putMember(THIS, t));
             for (int i = 0, l = args.length; i < l; i++) {
                 runtime.let(as[i]);
                 args[i] = new Get(runtime, argNames[i])::assign;
             }
+        } else {
+            args = null;
         }
         if (varArgs) {
             argNames[argNames.length - 1] = argNames[argNames.length - 1].substring(3);
@@ -101,6 +101,9 @@ public class JsFunction extends JsType {
     }
 
     private void argInput(Rvalue... as) {
+        if (args == null) {
+            return;
+        }
         int l = as.length;
         if (l > args.length) {
             if (varArgs) {

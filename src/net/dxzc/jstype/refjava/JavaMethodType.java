@@ -91,7 +91,7 @@ public class JavaMethodType implements Type {
     @Override
     public boolean invoke(Action<Type> r, Rvalue i, Rvalue... args) {
         int length = args.length;
-        if (isVarArgs && length > parameterCount || length == parameterCount) {
+        if (isVarArgs && length > parameterCount - 2 || length == parameterCount) {
             if (returnType != null) {
                 r.action(returnType);
             }

@@ -228,7 +228,15 @@ public class StandJsTopScope extends JsTopScope {
         method(fun, "valueOf", str);
 
         containMethod(arr, "pop");
-        method(arr, "push", num, "element");
+        actionMethod(arr, "push", num, (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            i.forType(t -> {
+                as[0].forType(n -> t.putMember(Type.CONTAIN, n));
+            });
+            return true;
+        }, "element");
         method(arr, "reverse", null);
         containMethod(arr, "shift");
         method(arr, "sort", null, "compareFunction");

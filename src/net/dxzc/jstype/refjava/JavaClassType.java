@@ -120,7 +120,7 @@ public class JavaClassType implements Type {
             int[] argCount = this.args = new int[l];
             boolean[] isVars = this.isVarArgs = new boolean[l];
             for (int t = 0; t < l; t++) {
-                argCount[t] = cs[t].getParameters().length;
+                argCount[t] = cs[t].getParameterTypes().length;
                 isVars[t] = cs[t].isVarArgs();
             }
         }
@@ -129,7 +129,7 @@ public class JavaClassType implements Type {
         boolean[] isVars = this.isVarArgs;
         for (int t = 0, l = constructCount; t < l; t++) {
             int needLength = argCount[t];
-            if (isVars[t] && needLength < length || needLength == length) {
+            if (isVars[t] && needLength - 2 < length || needLength == length) {
                 r.action(javaClass.objectType);
                 return true;
             }

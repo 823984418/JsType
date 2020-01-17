@@ -14,14 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.dxzc.jstype.test;
+package net.dxzc.jstype;
 
 import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
-import net.dxzc.jstype.Rvalue;
 
 /**
  *

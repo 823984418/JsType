@@ -36,6 +36,7 @@ public class Get extends Lvalue {
         this.target = target;
         this.name = name;
         target.forType(t -> {
+            t.putMember(name, null);
             t.addMemberAction(name, this::addType);
             forAssign(p -> t.putMember(name, p));
         });
