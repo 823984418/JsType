@@ -171,7 +171,7 @@ public class StandJsTopScope extends JsTopScope {
         extendArrayMethod(objf, "keys", strArr, "obj");
         firstMethod(objf, "preventExtensions", obj, "obj");
         firstMethod(objf, "seal", obj, "obj");
-        actionMethod(objf, "", obj, (f, invoked, r, i, as) -> {
+        actionMethod(objf, "setPrototypeOf", obj, (f, invoked, r, i, as) -> {
             if (as.length == 0) {
                 return false;
             }
