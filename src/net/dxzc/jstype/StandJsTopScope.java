@@ -44,14 +44,14 @@ public class StandJsTopScope extends JsTopScope {
 
         type.putMember(Type.THIS, type);
 
-        JsType fun = new JsType("Function");
+        JsType fun = new JsType(FUNCTION);
         map.put(FUNCTION, fun);
         JsNativeFunction funf = new JsNativeFunction("Function", fun);
         funf.putMember(Type.RETURN, fun);
         funf.extend(fun);
         type.putMember(FUNCTION, funf);
 
-        JsType obj = new JsType("Object");
+        JsType obj = new JsType(OBJECT);
         map.put(OBJECT, obj);
         JsActionFunction.TypeAction obja = (f, invoked, r, i, as) -> {
             JsType o = new JsType("object");
@@ -69,7 +69,7 @@ public class StandJsTopScope extends JsTopScope {
 
         fun.extend(obj);
 
-        JsType arr = new JsType("Array");
+        JsType arr = new JsType(ARRAY);
         arr.extend(obj);
         map.put(ARRAY, arr);
         JsActionFunction.TypeAction arra = (f, invoked, r, i, as) -> {
@@ -190,11 +190,18 @@ public class StandJsTopScope extends JsTopScope {
         objArr.extend(arr);
         objArr.putMember(Type.CONTAIN, str);
         extendArrayMethod(objf, "values", objArr, "obj");
+
         obj.putMember("constructor", fun);
         method(obj, "hasOwnProperty", boo, "prop");
         method(obj, "isPrototypeOf", boo, "object");
         method(obj, "propertyIsEnumerable", boo, "prop");
+        method(obj, "toSource", str);
+        method(obj, "toString", str);
+        method(obj, "toLocaleString", str);
+        method(obj, "valueOf", str);
 
+        fun.putMember("length", num);
+        fun.putMember("name", str);
         actionMethod(fun, "apply", obj, (f, invoked, r, i, args) -> {
             if (i == null) {
                 return false;
@@ -209,7 +216,34 @@ public class StandJsTopScope extends JsTopScope {
             });
             r.action(o);
             return true;
-        }, "thisArg", "argArrayOpt");
+        }, "thisArg", "argsArray");
+        actionMethod(fun, "bind", fun, (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            JsType ap = new JsType("bindFunctionPrototype");
+            i.forType(t -> {
+                t.addMemberAction(Type.NEW, ap::extend);
+                as[0].forType(x -> t.putMember(Type.THIS, x));
+            });
+            JsActionFunction.TypeAction a = (m, id, re, ie, args) -> {
+                int length = as.length + args.length - 1;
+                Rvalue[] nargs = new Rvalue[length];
+                System.arraycopy(as, 1, nargs, 0, as.length - 1);
+                System.arraycopy(args, 0, nargs, as.length - 1, args.length);
+                i.forType(t -> {
+                    if (id) {
+                        t.invoke(re, as[0], nargs);
+                    } else {
+                        t.newInstance(re, as[0], nargs);
+                    }
+                });
+                return true;
+            };
+            JsActionFunction af = new JsActionFunction("bindFunction", ap, a, a);
+            r.action(af);
+            return true;
+        }, "thisArg", "...args");
         actionMethod(fun, "call", obj, (f, invoked, r, i, args) -> {
             if (i == null) {
                 return false;
@@ -223,9 +257,6 @@ public class StandJsTopScope extends JsTopScope {
             }
             return true;
         }, "thisArg", "...args");
-        method(fun, "toSource", str);
-        method(fun, "toString", str);
-        method(fun, "valueOf", str);
 
         containMethod(arr, "pop");
         actionMethod(arr, "push", num, (f, invoked, r, i, as) -> {
@@ -235,25 +266,119 @@ public class StandJsTopScope extends JsTopScope {
             i.forType(t -> {
                 as[0].forType(n -> t.putMember(Type.CONTAIN, n));
             });
+            r.action(num);
             return true;
         }, "element");
-        method(arr, "reverse", null);
+        thisMethod(arr, "reverse", arr);
         containMethod(arr, "shift");
-        method(arr, "sort", null, "compareFunction");
-        method(arr, "splice", null, "index", "howMany", "...element");
-        method(arr, "unshift", num, "...element");
-        method(arr, "concat", null, "...value");
+        containMethod(arr, "find", "callback");
+        thisMethod(arr, "sort", arr, "compareFunction");
+        actionMethod(arr, "splice", arr, (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            i.forType(t -> {
+                for (int x = 2, l = as.length; x < l; x++) {
+                    as[x].forType(e -> t.putMember(Type.CONTAIN, e));
+                }
+                r.action(t);
+            });
+            return true;
+        }, "start", "deleteCount", "...element");
+        actionMethod(arr, "unshift", num, (f, invoked, r, i, as) -> {
+            if (i == null) {
+                return false;
+            }
+            i.forType(t -> {
+                for (int x = 0, l = as.length; x < l; x++) {
+                    as[x].forType(e -> t.putMember(Type.CONTAIN, e));
+                }
+            });
+            r.action(num);
+            return true;
+        }, "...element");
+        actionMethod(arr, "concat", arr, (f, invoked, r, i, as) -> {
+            if (i == null) {
+                return false;
+            }
+            JsArrayType ra = new JsArrayType();
+            ra.extend(arr);
+            for (int x = 0, l = as.length; x < l; x++) {
+                as[x].forType(e -> ra.putMember(Type.CONTAIN, e));
+            }
+            i.forType(t -> ra.putMember(Type.CONTAIN, t));
+            r.action(num);
+            return true;
+        }, "...value");
         method(arr, "indexOf", num, "searchElement");
         method(arr, "join", str, "separatorOpt");
         method(arr, "lastIndexOf", num, "searchElement");
         arrayCloneMethod(arr, "slice", "begin", "endOpt");
-        method(arr, "toString", str);
-        method(arr, "valueOf", str);
-        arrayCloneMethod(arr, "filter", "callback");
-        method(arr, "forEach", null, "callback");
-        method(arr, "every", boo, "callback");
-        arrayCloneMethod(arr, "map", "callback");
-        method(arr, "some", boo, "callback");
+        actionMethod(arr, "filter", arr, (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            JsArrayType ra = new JsArrayType();
+            ra.extend(arr);
+            Rvalue ca = new Rvalue();
+            i.forType(c -> c.addMemberAction(Type.CONTAIN, ac -> {
+                ca.addType(ac);
+                ra.putMember(Type.CONTAIN, ac);
+            }));
+            Rvalue thisArg = as.length > 1 ? as[1] : null;
+            Rvalue nv = new Rvalue(num);
+            as[0].forType(ft -> ft.invoke(n -> {
+            }, thisArg, ca, nv, i));
+            r.action(ra);
+            return true;
+        }, "callback", "thisArg");
+        JsActionFunction.TypeAction arrCall = (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            Rvalue ca = new Rvalue();
+            i.forType(c -> c.addMemberAction(Type.CONTAIN, ca::addType));
+            Rvalue thisArg = as.length > 1 ? as[1] : null;
+            Rvalue nv = new Rvalue(num);
+            as[0].forType(ft -> ft.invoke(n -> {
+            }, thisArg, ca, nv, i));
+            f.addMemberAction(Type.RETURN, r);
+            return true;
+        };
+        actionMethod(arr, "forEach", null, arrCall, "callback", "thisArg");
+        actionMethod(arr, "every", boo, arrCall, "callback", "thisArg");
+        actionMethod(arr, "some", boo, arrCall, "callback", "thisArg");
+        actionMethod(arr, "map", arr, (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            Rvalue ca = new Rvalue();
+            i.forType(c -> c.addMemberAction(Type.CONTAIN, ca::addType));
+            Rvalue thisArg = as.length > 1 ? as[1] : null;
+            Rvalue nv = new Rvalue(num);
+            JsArrayType ra = new JsArrayType();
+            as[0].forType(ft -> ft.invoke(o -> ra.putMember(Type.CONTAIN, o), thisArg, ca, nv, i));
+            r.action(ra);
+            return true;
+        }, "callback", "thisArg");
+        JsActionFunction.TypeAction arrReduce = (f, invoked, r, i, as) -> {
+            if (i == null || as.length == 0) {
+                return false;
+            }
+            Rvalue ca = new Rvalue();
+            i.forType(c -> c.addMemberAction(Type.CONTAIN, ca::addType));
+            Rvalue fr = new Rvalue();
+            if (as.length > 1) {
+                as[1].forType(fr::addType);
+            }
+            Rvalue ff = as.length > 1 ? fr : ca;
+            Rvalue nv = new Rvalue(num);
+            as[0].forType(ft -> ft.invoke(fr::addType, null, ff, ca, nv, i));
+            fr.forType(r);
+            return true;
+        };
+        actionMethod(arr, "reduce", obj, arrReduce, "callback", "initialValue");
+        actionMethod(arr, "reduceRight", obj, arrReduce, "callback", "initialValue");
 
         math.putMember("E", num);
         math.putMember("LN2", num);
@@ -322,13 +447,9 @@ public class StandJsTopScope extends JsTopScope {
         method(date, "setUTCSeconds", null, "secondsValueOpt", "msValueOpt");
         method(date, "setYear", null, "yearValue");
         method(date, "toGMTString", str);
-        method(date, "toLocaleString", str);
         method(date, "toLocaleDateString", str);
         method(date, "toLocaleTimeString", str);
-        method(date, "toSource", str);
-        method(date, "toString", str);
         method(date, "toUTCString", str);
-        method(date, "valueOf", num);
 
         err.putMember("description", str);
         err.putMember("fileName", str);
@@ -345,22 +466,12 @@ public class StandJsTopScope extends JsTopScope {
         numf.putMember("POSITIVE_INFINITY", num);
         method(num, "toExponential", str);
         method(num, "toFixed", str);
-        method(num, "toLocaleString", str);
         method(num, "toPrecision", str);
-        method(num, "toSource", str);
-        method(num, "toString", str);
-        method(num, "valueOf", num);
-
-        method(boo, "toSource", str);
-        method(boo, "toString", str);
-        method(boo, "valueOf", num);
 
         JsArrayType strarr = new JsArrayType();
         strarr.putMember(Type.CONTAIN, str);
         method(reg, "exec", strarr, "strOpt");
         method(reg, "test", boo, "strOpt");
-        method(reg, "toSource", str);
-        method(reg, "toString", str);
 
         str.putMember("length", num);
         method(str, "charAt", str, "index");
@@ -376,10 +487,7 @@ public class StandJsTopScope extends JsTopScope {
         method(str, "substr", str, "start", "lengthOpt");
         method(str, "substring", str, "indexA", "indexBOpt");
         method(str, "toLowerCase", str);
-        method(str, "toSource", str);
-        method(str, "toString", str);
         method(str, "toUpperCase", str);
-        method(str, "valueOf", num);
         method(str, "anchor", str, "nameAttribute");
         method(str, "big", str);
         method(str, "blink", str);
@@ -477,11 +585,10 @@ public class StandJsTopScope extends JsTopScope {
      * @param name 方法名
      * @param args 形参表
      */
-    public void cloneMethod(Type pro, String name, String... args) {
-        Type obj = getPrototype(OBJECT);
-        actionMethod(pro, name, obj, (fun, invoked, r, i, as) -> {
+    public void cloneMethod(Type pro, String name, Type re, String... args) {
+        actionMethod(pro, name, re, (fun, invoked, r, i, as) -> {
             JsType o = new JsType("object");
-            o.extend(obj);
+            o.extend(re);
             if (i != null) {
                 i.forType(o::extend);
             }
@@ -532,10 +639,11 @@ public class StandJsTopScope extends JsTopScope {
      *
      * @param pro 方法拥有者
      * @param name 方法名
+     * @param re 显示的返回类型
      * @param args 形参表
      */
-    public void thisMethod(Type pro, String name, String... args) {
-        actionMethod(pro, name, getPrototype(OBJECT), (fun, invoked, r, i, as) -> {
+    public void thisMethod(Type pro, String name, Type re, String... args) {
+        actionMethod(pro, name, re, (fun, invoked, r, i, as) -> {
             if (this == null) {
                 return false;
             }
@@ -562,11 +670,11 @@ public class StandJsTopScope extends JsTopScope {
     }
 
     /**
-     * 构建一个返回值继承某数组类型的方法. 每个返回值是独立的原型
+     * 构建一个返回值继承某数组类型的方法.每个返回值是独立的原型
      *
      * @param pro 方法拥有者
      * @param name 方法名
-     * @param r 返回类型
+     * @param arrObj 返回类型
      * @param args 形参表
      */
     public void extendArrayMethod(Type pro, String name, Type arrObj, String... args) {
@@ -588,9 +696,6 @@ public class StandJsTopScope extends JsTopScope {
      * @param args 形参表
      */
     public void actionMethod(Type pro, String name, Type r, JsActionFunction.TypeAction action, String... args) {
-        if (r == null) {
-            throw new RuntimeException();
-        }
         JsType p = new JsType("object");
         p.extend(getPrototype(OBJECT));
         JsActionFunction m = new JsActionFunction(name, p, action, null, args);
