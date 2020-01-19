@@ -141,6 +141,47 @@ public class AstTransformer {
         return "object@" + node.getAbsolutePosition();
     }
 
+    /**
+     * 移除文档注释中的*.
+     *
+     * @param s 注释内容
+     * @return 文档内容
+     */
+    protected String initDoc(String s) {
+        StringBuilder sb = new StringBuilder();
+        boolean h = true;
+        for (int i = 2, l = s.length() - 1; i < l; i++) {
+            char c = s.charAt(i);
+            if (h) {
+                if (c == '*') {
+                    h = false;
+                    continue;
+                }
+                if (c == ' ') {
+                    continue;
+                }
+            }
+            sb.append(c);
+            if (c == '\n') {
+                h = true;
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 检验名字是否合法.
+     *
+     * @param name 名字
+     * @return 合法性
+     */
+    protected boolean isName(String name) {
+        if (name.isEmpty()) {
+            return false;
+        }
+        return name.charAt(0) != '#';
+    }
+
     private void onValueByNode(Rvalue value, AstNode node) {
         onValue(value, node.getAbsolutePosition(), node.getLength());
     }
@@ -169,10 +210,6 @@ public class AstTransformer {
         for (AstNode e : node.getStatements()) {
             transform(scope, e);
         }
-    }
-
-    private static void set(Rvalue v, String n, Rvalue e) {
-        new Assign(new Get(v, n), e);
     }
 
     private void warning(String message, AstNode node) {
@@ -330,7 +367,7 @@ public class AstTransformer {
             case Token.RETURN: {
                 AstNode n = ((ReturnStatement) node).getReturnValue();
                 if (n != null) {
-                    set(scope.getScope(), Type.RETURN, exp(scope, n));
+                    new Assign(new Get(scope.getScope(), Type.RETURN), exp(scope, n));
                 } else {
                     new Get(scope.getScope(), Type.RETURN);
                 }
@@ -746,47 +783,6 @@ public class AstTransformer {
             scope.getScope().getScopeType().putMember(name, fun);
         }
         return fun;
-    }
-
-    /**
-     * 移除文档注释中的*.
-     *
-     * @param s 注释内容
-     * @return 文档内容
-     */
-    protected String initDoc(String s) {
-        StringBuilder sb = new StringBuilder();
-        boolean h = true;
-        for (int i = 2, l = s.length() - 1; i < l; i++) {
-            char c = s.charAt(i);
-            if (h) {
-                if (c == '*') {
-                    h = false;
-                    continue;
-                }
-                if (c == ' ') {
-                    continue;
-                }
-            }
-            sb.append(c);
-            if (c == '\n') {
-                h = true;
-            }
-        }
-        return sb.toString();
-    }
-
-    /**
-     * 检验名字是否合法.
-     *
-     * @param name 名字
-     * @return 合法性
-     */
-    protected boolean isName(String name) {
-        if (name.isEmpty()) {
-            return false;
-        }
-        return name.charAt(0) != '#';
     }
 
 }
