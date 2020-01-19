@@ -585,6 +585,7 @@ public class StandJsTopScope extends JsTopScope {
      *
      * @param pro 方法拥有者
      * @param name 方法名
+     * @param re 显示的返回类型
      * @param args 形参表
      */
     public void cloneMethod(Type pro, String name, Type re, String... args) {
