@@ -35,7 +35,6 @@ public class BaseTest extends AstTransformer {
             public JsTopScope buildTopScope() {
                 JsTopScope scope = new StandJsTopScope();
                 loader.init(scope);
-                JsXmlFunction.init(scope);
                 return scope;
             }
         });

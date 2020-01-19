@@ -513,6 +513,8 @@ public class StandJsTopScope extends JsTopScope {
         type.putMember("NaN", num);
         type.putMember("Infinity", num);
 
+        JsXmlFunction.init(this);
+
     }
 
     /**
