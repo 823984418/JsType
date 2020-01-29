@@ -241,6 +241,7 @@ public class StandJsTopScope extends JsTopScope {
                 return true;
             };
             JsActionFunction af = new JsActionFunction("bindFunction", ap, a, a);
+            af.extend(fun);
             r.action(af);
             return true;
         }, "thisArg", "...args");
