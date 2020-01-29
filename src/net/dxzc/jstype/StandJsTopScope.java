@@ -221,28 +221,10 @@ public class StandJsTopScope extends JsTopScope {
             if (i == null || as.length == 0) {
                 return false;
             }
-            JsType ap = new JsType("bindFunctionPrototype");
             i.forType(t -> {
-                t.addMemberAction(Type.NEW, ap::extend);
+                r.action(t);
                 as[0].forType(x -> t.putMember(Type.THIS, x));
             });
-            JsActionFunction.TypeAction a = (m, id, re, ie, args) -> {
-                int length = as.length + args.length - 1;
-                Rvalue[] nargs = new Rvalue[length];
-                System.arraycopy(as, 1, nargs, 0, as.length - 1);
-                System.arraycopy(args, 0, nargs, as.length - 1, args.length);
-                i.forType(t -> {
-                    if (id) {
-                        t.invoke(re, as[0], nargs);
-                    } else {
-                        t.newInstance(re, as[0], nargs);
-                    }
-                });
-                return true;
-            };
-            JsActionFunction af = new JsActionFunction("bindFunction", ap, a, a);
-            af.extend(fun);
-            r.action(af);
             return true;
         }, "thisArg", "...args");
         actionMethod(fun, "call", obj, (f, invoked, r, i, args) -> {

@@ -16,8 +16,11 @@
  */
 package net.dxzc.jstype.exp;
 
+import java.util.HashMap;
+import java.util.Map;
 import net.dxzc.jstype.Lvalue;
 import net.dxzc.jstype.Rvalue;
+import net.dxzc.jstype.Type;
 
 /**
  * 形如{@code a()}的表达式.
@@ -35,13 +38,20 @@ public class Invoke extends Lvalue {
     public Invoke(Rvalue target, Rvalue... args) {
         int l = args.length;
         if (target instanceof Get) {
-            target.forType(t -> t.invoke(this::addType, ((Get) target).target, args));
-//            Get g = (Get) target;
-//            g.target.forType(t -> {
-//                t.addMemberAction(g.name, c -> {
-//                    c.invoke(this::addType, new Rvalue(t), args);
-//                });
-//            });//此写法会导致部分内联函数无穷递归
+            //target.forType(t -> t.invoke(this::addType, ((Get) target).target, args));
+            Get g = (Get) target;
+            Map<Type, Rvalue> map = new HashMap<>();
+            g.target.forType(t -> {
+                t.addMemberAction(g.name, c -> {
+                    Rvalue v = map.get(c);
+                    if (v == null) {
+                        v = new Rvalue();
+                        map.put(c, v);
+                        c.invoke(this::addType, v, args);
+                    }
+                    v.addType(t);
+                });
+            });
         } else {
             target.forType(t -> t.invoke(this::addType, null, args));
         }
