@@ -248,6 +248,10 @@ public class AstTransformer {
             exp(scope, node);
             return;
         }
+        if (node instanceof LabeledStatement) {
+            transform(scope,((LabeledStatement) node).getStatement());
+            return;
+        }
         switch (type) {
             case Token.EMPTY:
             case Token.BREAK:
